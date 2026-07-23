@@ -1,0 +1,19 @@
+.blue-login-button{
+	background: linear-gradient(60deg, #00aadb, #00aadb) !important;
+}
+.color-white{
+	color: white !important;
+}
+body .card .card-header-theme .card-icon,body  .card .card-header-theme:not(.card-header-icon):not(.card-header-text),body  .card.bg-theme, .card.card-rotate.bg-theme .front,body  .card.card-rotate.bg-theme .back {
+   background: linear-gradient(45deg, #3860a4 0%, #3694cc 100%) !important;
+    color: #fff;
+
+}
+.bg-theme {
+    background-color: #4070f4 !important;
+}
+@media (max-width: 767px) {
+	.logo-main img{
+		width: 100% !important;
+	}
+}
