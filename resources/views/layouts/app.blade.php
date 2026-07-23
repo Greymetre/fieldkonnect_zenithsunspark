@@ -779,15 +779,15 @@
             <div class="menu">
                <ul class="menu-links">
                   @if(auth()->user()->can(['dashboard_access']))
-                  {{--<li class="nav-link hide_icon {{ request()->is('dealer_dashboard') ? 'active' : '' }}">
+                  <li class="nav-link hide_icon {{ request()->is('dealer_dashboard') ? 'active' : '' }}">
                   <a class="collapsed hoveradd" href="{{ url('dashboard') }}">
                      <i class="material-icons icon">dashboard</i>
                      <span>{!! trans('panel.sidemenu.dashboard') !!}</span>
                      <div class="d-none mobile_hide"> {!! trans('panel.sidemenu.dashboard') !!}</div>
                   </a>
-                  </li>--}}
+                  </li>
 
-                  <li class="nav-link {{ request()->is('sales_summary_dashboard*') || request()->is('dealer_dashboard') ? 'active' : '' }}">
+                  {{--<li class="nav-link {{ request()->is('sales_summary_dashboard*') || request()->is('dealer_dashboard') ? 'active' : '' }}">
                      <a class="collapsed hoveradd" data-toggle="collapse" href="#dashMenu" aria-expanded="false">
                         <i class="material-icons icon">diversity_3</i>
                         <span> {!! trans('panel.sidemenu.dashboard') !!}
@@ -825,7 +825,7 @@
                            @endif
                         </ul>
                      </div>
-                  </li>
+                  </li>--}}
                   @endif
                   @if(auth()->user()->can(['lead_management_access']))
                   <li class="nav-link {{ request()->is('leads*') || request()->is('contacts*') ? 'active' : '' }}">
