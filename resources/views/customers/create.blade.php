@@ -90,7 +90,7 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="input_section">
-                  <label class="col-form-label">{!! trans('panel.customers.fields.name') !!}<span class="text-danger"> *</span></label>
+                  <label class="col-form-label">Firm Name<span class="text-danger"> *</span></label>
 
                   <div class="form-group has-default bmd-form-group">
                     <input type="text" name="name" class="form-control" value="{!! old( 'name', $customers['name']) !!}" maxlength="200" required>
@@ -119,10 +119,10 @@
 
               <div class="col-md-6">
                 <div class="input_section">
-                  <label class="col-form-label">{!! trans('panel.customers.fields.first_name') !!} <span class="text-danger"> *</span></label>
+                  <label class="col-form-label">{!! trans('panel.customers.fields.first_name') !!}</label>
 
                   <div class="form-group has-default bmd-form-group">
-                    <input type="text" name="first_name" class="form-control" value="{!! old( 'first_name', $customers['first_name']) !!}" maxlength="200" required>
+                    <input type="text" name="first_name" class="form-control" value="{!! old( 'first_name', $customers['first_name']) !!}" maxlength="200">
                     @if ($errors->has('first_name'))
                     <div class="error">
                       <p class="text-danger">{{ $errors->first('first_name') }}</p>
@@ -157,7 +157,7 @@
                       <option value="">Select {!! trans('panel.customers.fields.customertype') !!}</option>
                       @if(@isset($customertype ))
                       @foreach($customertype as $type)
-                      <option value="{!! $type['id'] !!}" {{ old( 'customertype' , (!empty($customers->customertype))?($customers->customertype):('') ) == $type['id'] ? 'selected' : '' }}>{!! $type['customertype_name'] !!}</option>
+                      <option value="{!! $type['id'] !!}" {{ old('customertype', !empty($customers->customertype) ? $customers->customertype : 1) == $type['id'] ? 'selected' : '' }}>{!! $type['customertype_name'] !!}</option>
                       @endforeach
                       @endif
                     </select>
@@ -236,7 +236,7 @@
 
               <div class="col-md-6">
                 <div class="input_section">
-                  <label class="col-form-label">{!! trans('panel.global.contact_number_two') !!}<span class="text-danger"> *</span></label>
+                  <label class="col-form-label">{!! trans('panel.global.contact_number_two') !!}</label>
 
                   <div class="form-group has-default bmd-form-group">
                     <input type="text" name="contact_number" id="contact_number" class="form-control" value="{!! old( 'contact_number', $customers['contact_number']) !!}" maxlength="13" minlength="10">
@@ -251,10 +251,10 @@
 
               <div class="col-md-6">
                 <div class="input_section">
-                  <label class="col-form-label">Working Status<span class="text-danger"> *</span></label>
+                  <label class="col-form-label">Working Status</label>
 
                   <div class="form-group has-default bmd-form-group">
-                    <select class="form-control select2" name="working_status" style="width: 100%;" required id="type">
+                    <select class="form-control select2" name="working_status" style="width: 100%;">
                       <option value="">Select Working Status</option>
                       <option value="New" {{($customers && $customers['working_status'] == 'New')? 'selected':''}}>New</option>
                       <option value="Existing" {{($customers && $customers['working_status'] == 'Existing')? 'selected':''}}>Existing</option>
@@ -297,6 +297,28 @@
                   @endif
                 </div>
 
+              </div>
+
+              <div class="col-md-6">
+                <div class="input_section">
+                  <label class="col-form-label">{!! trans('panel.customers.fields.firmtype') !!}<span class="text-danger"> *</span></label>
+
+                  <div class="form-group has-default bmd-form-group">
+                    <select class="form-control select2" name="firmtype" style="width: 100%;" required>
+                      <option value="">Select {!! trans('panel.customers.fields.firmtype') !!}</option>
+                      @if(@isset($firmtype))
+                      @foreach($firmtype as $firm)
+                      <option value="{!! $firm['id'] !!}" {{ old('firmtype', $customers->firmtype ?? '') == $firm['id'] ? 'selected' : '' }}>{!! $firm['firmtype_name'] !!}</option>
+                      @endforeach
+                      @endif
+                    </select>
+                  </div>
+                  @if ($errors->has('firmtype'))
+                  <div class="error">
+                    <p class="text-danger">{{ $errors->first('firmtype') }}</p>
+                  </div>
+                  @endif
+                </div>
               </div>
 
               @if(isset($customers['customertype']) && $customers['customertype'])
@@ -368,28 +390,6 @@
 
 
 
-            <!-- <div class="col-md-6">
-              <div class="row">
-                <label class="col-md-3 col-form-label">{!! trans('panel.customers.fields.firmtype') !!}</label>
-                <div class="col-md-9">
-                  <div class="form-group has-default bmd-form-group">
-                    <select class="form-control select2" name="firmtype" style="width: 100%;">
-                        <option value="">Select {!! trans('panel.customers.fields.firmtype') !!}</option>
-                        @if(@isset($firmtype ))
-                        @foreach($firmtype as $firm)
-                        <option value="{!! $firm['id'] !!}" {{ old( 'firmtype' , (!empty($customers->firmtype))?($customers->firmtype):('') ) == $firm['id'] ? 'selected' : '' }}>{!! $firm['firmtype_name'] !!}</option>
-                        @endforeach
-                        @endif
-                     </select>
-                  </div>
-                  @if ($errors->has('firmtype'))
-                   <div class="error col-lg-12">
-                      <p class="text-danger">{{ $errors->first('firmtype') }}</p>
-                   </div>
-                  @endif
-                </div>
-              </div>
-            </div> -->
             <!--             <div class="col-md-6">
               <div class="row">
                 <label class="col-md-3 col-form-label">Employee</label>
@@ -625,7 +625,7 @@
                       @endif
 
                     </div>
-                    <input type="checkbox" name="same_address" id="same_address" {{ old( 'same_address' , (!empty($customers['same_address']))?($customers['same_address']):('') ) == 1 ? 'checked' : '' }}> <span class="text-theme2">Same Shipping Address</span>
+                    <input type="checkbox" name="same_address" id="same_address" value="1" {{ old('same_address', $customers['same_address'] ?? 0) ? 'checked' : '' }}> <span class="text-theme2">Same Shipping Address</span>
                   </div>
                 </div>
               </div>
@@ -636,10 +636,10 @@
                 <div class="row">
                   <div class="col-md-12">
                     <div class="input_section">
-                      <label class="col-form-label">{!! trans('panel.address.address1') !!} <span class="text-danger"> *</span></label>
+                      <label class="col-form-label">{!! trans('panel.address.address1') !!} <span id="shipping_address1_required" class="text-danger"> *</span></label>
 
                       <div class="form-group has-default bmd-form-group">
-                        <input type="text" name="shipping_address1" class="form-control" value="{!! old( 'shipping_address1', isset($customers['customershippingaddress']['address1']) ? $customers['customershippingaddress']['address1'] :'' ) !!}" maxlength="200" required>
+                        <input type="text" name="shipping_address1" class="form-control" value="{!! old( 'shipping_address1', isset($customers['customershippingaddress']['address1']) ? $customers['customershippingaddress']['address1'] :'' ) !!}" maxlength="200">
                         @if ($errors->has('shipping_address1'))
                         <div class="error col-lg-12">
                           <p class="text-danger">{{ $errors->first('shipping_address1') }}</p>
@@ -929,7 +929,7 @@
                 <div class="input_section">
                   <label class="col-form-label">Visit Status</label>
                   <div class="form-group has-default bmd-form-group">
-                    <select class="form-control" name="visit_status" id="visit_status" style="width: 100%;" required>
+                    <select class="form-control" name="visit_status" id="visit_status" style="width: 100%;">
                       <option value="" selected disabled>Select Visit Status</option>
                       <option value="Hot" @if(!empty($customers->customerdetails) && $customers->customerdetails->visit_status == "Hot") selected @endif>Hot</option>
                       <option value="Warm" @if(!empty($customers->customerdetails) && $customers->customerdetails->visit_status == "Warm") selected @endif>Warm</option>
@@ -951,7 +951,7 @@
                   <label class="col-form-label">Grade</label>
 
                   <div class="form-group has-default bmd-form-group">
-                    <select class="form-control" name="grade" id="grade" style="width: 100%;" required>
+                    <select class="form-control" name="grade" id="grade" style="width: 100%;">
                       <option value="" selected disabled>Select Grade</option>
                       <option value="Grade A" @if(!empty($customers->customerdetails) && $customers->customerdetails->grade == "Grade A") selected @endif>A</option>
                       <option value="Grade B" @if(!empty($customers->customerdetails) && $customers->customerdetails->grade == "Grade B") selected @endif>B</option>
@@ -1201,8 +1201,8 @@
     </div>
   </div>
   </div>
-  <script src="{{ url('/').'/'.asset('assets/js/jquery.custom.js?v='.time()) }}"></script>
-  <script src="{{ url('/').'/'.asset('assets/js/validation_customers.js') }}"></script>
+  <script src="{{ asset('assets/js/jquery.custom.js') }}?v={{ filemtime(public_path('assets/js/jquery.custom.js')) }}"></script>
+  <script src="{{ asset('assets/js/validation_customers.js') }}"></script>
   <script type="text/javascript">
     $(function() {
       //Initialize Select2 Elements
@@ -1257,9 +1257,13 @@
         if ($('#same_address').is(':checked')) {
           $('#shipping_address').hide();
           $('#billing_address').removeClass('col-md-6').addClass('col-md-12');
+          $('[name="shipping_address1"]').prop('required', false);
+          $('#shipping_address1_required').hide();
         } else {
           $('#shipping_address').show();
           $('#billing_address').removeClass('col-md-12').addClass('col-md-6');
+          $('[name="shipping_address1"]').prop('required', true);
+          $('#shipping_address1_required').show();
         }
       }
 

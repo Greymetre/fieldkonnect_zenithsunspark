@@ -36,10 +36,11 @@
             'files'=>true
             ]) !!}
             <input type="hidden" name="id" value="{!! $customers['id'] !!}">
+            <input type="hidden" name="same_address" value="1">
             <div class="row">
               <div class="col-md-6">
                 <div class="row">
-                  <label class="col-md-3 col-form-label">{!! trans('panel.customers.fields.name') !!}<span class="text-danger"> *</span></label>
+                  <label class="col-md-3 col-form-label">Firm Name<span class="text-danger"> *</span></label>
                   <div class="col-md-9">
                     <div class="form-group has-default bmd-form-group">
                       <input type="text" name="name" class="form-control" value="{!! old( 'name', $customers['name']) !!}" maxlength="200" required>
@@ -67,10 +68,10 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="row">
-                  <label class="col-md-3 col-form-label">{!! trans('panel.customers.fields.first_name') !!} <span class="text-danger"> *</span></label>
+                  <label class="col-md-3 col-form-label">{!! trans('panel.customers.fields.first_name') !!}</label>
                   <div class="col-md-9">
                     <div class="form-group has-default bmd-form-group">
-                      <input type="text" name="first_name" class="form-control" value="{!! old( 'first_name', $customers['first_name']) !!}" maxlength="200" required>
+                      <input type="text" name="first_name" class="form-control" value="{!! old( 'first_name', $customers['first_name']) !!}" maxlength="200">
                       @if ($errors->has('first_name'))
                         <div class="error col-lg-12"><p class="text-danger">{{ $errors->first('first_name') }}</p></div>
                       @endif
@@ -80,10 +81,10 @@
               </div>
               <div class="col-md-6">
                 <div class="row">
-                  <label class="col-md-3 col-form-label">{!! trans('panel.customers.fields.last_name') !!}<span class="text-danger"> *</span></label>
+                  <label class="col-md-3 col-form-label">{!! trans('panel.customers.fields.last_name') !!}</label>
                   <div class="col-md-9">
                     <div class="form-group has-default bmd-form-group">
-                      <input type="text" name="last_name" class="form-control" value="{!! old( 'last_name', $customers['last_name']) !!}" maxlength="200" required>
+                      <input type="text" name="last_name" class="form-control" value="{!! old( 'last_name', $customers['last_name']) !!}" maxlength="200">
                       @if ($errors->has('last_name'))
                         <div class="error col-lg-12"><p class="text-danger">{{ $errors->first('last_name') }}</p></div>
                       @endif
@@ -93,7 +94,7 @@
               </div>
               <div class="col-md-6">
               <div class="row">
-                <label class="col-md-3 col-form-label">{!! trans('panel.global.email') !!}<span class="text-danger"> *</span></label>
+                <label class="col-md-3 col-form-label">{!! trans('panel.global.email') !!}</label>
                 <div class="col-md-9">
                   <div class="form-group has-default bmd-form-group">
                     <input type="email" name="email" class="form-control" value="{!! old( 'email', $customers['email']) !!}" maxlength="200">
@@ -126,7 +127,7 @@
                         <option value="">Select {!! trans('panel.customers.fields.customertype') !!}</option>
                         @if(@isset($customertype ))
                         @foreach($customertype as $type)
-                        <option value="{!! $type['id'] !!}" {{ old( 'customertype' , (!empty($customers->customertype))?($customers->customertype):('') ) == $type['id'] ? 'selected' : '' }}>{!! $type['customertype_name'] !!}</option>
+                        <option value="{!! $type['id'] !!}" {{ old('customertype', !empty($customers->customertype) ? $customers->customertype : 1) == $type['id'] ? 'selected' : '' }}>{!! $type['customertype_name'] !!}</option>
                         @endforeach
                         @endif
                      </select>
@@ -141,10 +142,10 @@
             </div>
             <div class="col-md-6">
               <div class="row">
-                <label class="col-md-3 col-form-label">{!! trans('panel.customers.fields.firmtype') !!}</label>
+                <label class="col-md-3 col-form-label">{!! trans('panel.customers.fields.firmtype') !!}<span class="text-danger"> *</span></label>
                 <div class="col-md-9">
                   <div class="form-group has-default bmd-form-group">
-                    <select class="form-control select2" name="firmtype" style="width: 100%;">
+                    <select class="form-control select2" name="firmtype" style="width: 100%;" required>
                         <option value="">Select {!! trans('panel.customers.fields.firmtype') !!}</option>
                         @if(@isset($firmtype ))
                         @foreach($firmtype as $firm)

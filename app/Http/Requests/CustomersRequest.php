@@ -10,6 +10,13 @@ use Illuminate\Validation\Rule;
 
 class CustomersRequest extends FormRequest
 {
+    protected function prepareForValidation()
+    {
+        if (!$this->filled('customertype')) {
+            $this->merge(['customertype' => 1]);
+        }
+    }
+
     public function authorize()
     {
         abort_if(Gate::denies('customer_create') || Gate::denies('customer_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
@@ -23,9 +30,10 @@ class CustomersRequest extends FormRequest
             case !empty($this->id) :
                 $rules = [
                     'name'          => 'required|min:2|max:100|string|regex:/[a-zA-Z0-9\s]+/',
-                    'first_name'    => 'required|min:2|max:100|string|regex:/[a-zA-Z0-9\s]+/',
+                    'first_name'    => 'nullable|min:2|max:100|string|regex:/[a-zA-Z0-9\s]+/',
                     'last_name'     => 'nullable|string|regex:/[a-zA-Z0-9\s]+/',
-                    'address'       => 'nullable|min:2|max:100|string|regex:/[a-zA-Z0-9\s]+/',
+                    'address1'      => 'required|min:2|max:250|string',
+                    'shipping_address1' => 'required_unless:same_address,1|nullable|min:2|max:250|string',
                     'mobile'        => 'required|digits:10|unique:customers,mobile,NULL,id,'.$this->id,
                     'email'         => 'nullable|min:7|max:200|email|unique:customers,email,'.$this->id,
                     'customer_code' => 'nullable|max:100|string|regex:/[a-zA-Z0-9\s]+/|unique:customers,customer_code,'.$this->id,
@@ -39,14 +47,17 @@ class CustomersRequest extends FormRequest
                     'city_id'       => 'nullable|numeric|exists:cities,id',
                     'pincode_id'    => 'nullable|numeric|exists:pincodes,id',
                     'status_id'     => 'nullable|numeric|exists:statuses,id',
+                    'customertype'  => 'required|integer|exists:customer_types,id',
+                    'firmtype'      => 'required|integer|exists:firm_types,id',
                 ];
                 break;
             default :
                 $rules = [
                     'name'          => 'required|min:2|max:100|string|regex:/[a-zA-Z0-9\s]+/',
-                    'first_name'    => 'required|min:2|max:100|string|regex:/[a-zA-Z0-9\s]+/',
-                    'last_name'     => 'required|min:2|max:100|string|regex:/[a-zA-Z0-9\s]+/',
-                    'address'       => 'nullable|min:2|max:100|string|regex:/[a-zA-Z0-9\s]+/',
+                    'first_name'    => 'nullable|min:2|max:100|string|regex:/[a-zA-Z0-9\s]+/',
+                    'last_name'     => 'nullable|min:2|max:100|string|regex:/[a-zA-Z0-9\s]+/',
+                    'address1'      => 'required|min:2|max:250|string',
+                    'shipping_address1' => 'required_unless:same_address,1|nullable|min:2|max:250|string',
                     'mobile'        => 'required|digits:10|unique:customers,mobile',
                     'email'         => 'nullable|min:7|max:200|email||unique:customers,email',
                     'customer_code' => 'nullable|min:2|max:100|string|regex:/[a-zA-Z0-9\s]+/|unique:customers,customer_code',
@@ -60,6 +71,8 @@ class CustomersRequest extends FormRequest
                     'city_id'       => 'nullable|numeric|exists:cities,id',
                     'pincode_id'    => 'nullable|numeric|exists:pincodes,id',
                     'status_id'     => 'nullable|numeric|exists:statuses,id',
+                    'customertype'  => 'required|integer|exists:customer_types,id',
+                    'firmtype'      => 'required|integer|exists:firm_types,id',
                 ];
                 break;
         }

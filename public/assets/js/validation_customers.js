@@ -31,7 +31,7 @@ $(document).ready(function () {
       },
       first_name:
       {
-        required:true,
+        required:false,
         minlength:3,
         maxlength: 250,
       },
@@ -83,6 +83,7 @@ $(document).ready(function () {
       },
       firmtype:
       {
+        required:true,
         number: true,
         maxlength: 50,
       },
@@ -157,6 +158,13 @@ $(document).ready(function () {
         required:true,
         maxlength: 250,
       },
+      shipping_address1:
+      {
+        required: function() {
+          return !$('#same_address').is(':checked');
+        },
+        maxlength: 250,
+      },
       address2:
       {
         maxlength: 250,
@@ -171,31 +179,31 @@ $(document).ready(function () {
       },
       country_id:
       {
-        required:true,
+        required:false,
         number: true,
         maxlength: 50,
       },
       state_id:
       {
-        required:true,
+        required:false,
         number: true,
         maxlength: 50,
       },
       district_id:
       {
-        required:true,
+        required:false,
         number: true,
         maxlength: 50,
       },
       city_id:
       {
-        required:true,
+        required:false,
         number: true,
         maxlength: 50,
       },
       pincode_id:
       {
-        required:true,
+        required:false,
         number: true,
         maxlength: 50,
       },
@@ -240,6 +248,9 @@ $(document).ready(function () {
       },
       address1:{
         required: "Please enter Address",
+      },
+      shipping_address1:{
+        required: "Please enter Shipping Address",
       },
     }
   });

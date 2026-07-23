@@ -9,18 +9,18 @@
    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
    <!-- CSS Files -->
-   <link href="{{ url('/').'/'.asset('assets/css/materialdashboard2.css?v=' . now()->timestamp) }}" rel="stylesheet" />
-   <link href="{{ url('/').'/'.asset('assets/css/newdesign.css?v=' . now()->timestamp) }}" rel="stylesheet" />
-   <link href="{{ url('/').'/'.asset('assets/css/custom1.css?v=' . now()->timestamp) }}" rel="stylesheet" />
+   <link href="{{ asset('assets/css/materialdashboard2.css?v=' . now()->timestamp) }}" rel="stylesheet" />
+   <link href="{{ asset('assets/css/newdesign.css?v=' . now()->timestamp) }}" rel="stylesheet" />
+   <link href="{{ asset('assets/css/custom1.css?v=' . now()->timestamp) }}" rel="stylesheet" />
    <!-- CSS Just for demo purpose, don't include it in your project -->
-   <link href="{{ url('/').'/'.asset('assets/demo/demo.css?v=' . now()->timestamp) }}" rel="stylesheet" />
-   <!-- <link href="{{ url('/').'/'.asset('assets/css/jquery-ui.css') }}" rel="stylesheet" /> -->
-   <link href="{{ url('/').'/'.asset('assets/css/responsive.bootstrap4.css?v=' . now()->timestamp) }}" rel="stylesheet" />
-   <link rel="stylesheet" href="{{ url('/').'/'.asset('assets/plugins/select2/css/select2.css?v=' . now()->timestamp) }}">
+   <link href="{{ asset('assets/demo/demo.css?v=' . now()->timestamp) }}" rel="stylesheet" />
+   <!-- <link href="{{ asset('assets/css/jquery-ui.css') }}" rel="stylesheet" /> -->
+   <link href="{{ asset('assets/css/responsive.bootstrap4.css?v=' . now()->timestamp) }}" rel="stylesheet" />
+   <link rel="stylesheet" href="{{ asset('assets/plugins/select2/css/select2.css?v=' . now()->timestamp) }}">
    <link href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css" rel="stylesheet">
-   <script src="{{ url('/').'/'.asset('assets/js/core/jquery.min.js') }}"></script>
-   <script src="{{ url('/').'/'.asset('assets/js/core/jquery-ui.js') }}"></script>
-   <script src="{{ url('/').'/'.asset('assets/js/plugins/moment.min.js') }}"></script>
+   <script src="{{ asset('assets/js/core/jquery.min.js') }}"></script>
+   <script src="{{ asset('assets/js/core/jquery-ui.js') }}"></script>
+   <script src="{{ asset('assets/js/plugins/moment.min.js') }}"></script>
    <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
    <meta http-equiv="Cache-Control" content="no-store" />
    <style>
@@ -756,10 +756,10 @@
                <a href="{{ url('customers') }}" class="simple-text logo-normal">
                   <!-- GAJRA GEARS -->
                   <div class="logo-main desktop">
-                     <img src="{{ url('/').'/'.asset('assets/img/brand_logo_new.png') }}" class="rounded" alt="...">
+                     <img src="{{ asset('assets/img/brand_logo_new.png') }}" class="rounded" alt="...">
                   </div>
                   <div class="logo-main mobile">
-                     <img src="{{ url('/').'/'.asset('assets/img/mobillogo.svg') }}" class="rounded" alt="...">
+                     <img src="{{ asset('assets/img/mobillogo.svg') }}" class="rounded" alt="...">
                   </div>
                </a>
             </div>
@@ -2532,10 +2532,10 @@
       <nav class="navbar navbar-expand-lg navbar-transparent navbar-absolute fixed-top ">
          <div class="container-fluid" style="background: transparent; !important">
             <div class="new_demo">
-            <img class="rounded ml-2 iconimg" alt="Zenith Sun Spark" src="{!! url('/').'/'.asset('assets/img/zenithsunspark.png') !!}?" width="75">
-            <!-- <img class="rounded ml-2  iconimg" src="{!! url('/').'/'.asset('assets/img/silver.png') !!}" width="100"> -->
+            <img class="rounded ml-2 iconimg" alt="Zenith Sun Spark" src="{!! asset('assets/img/zenithsunspark.png') !!}?" width="75">
+            <!-- <img class="rounded ml-2  iconimg" src="{!! asset('assets/img/silver.png') !!}" width="100"> -->
          </div>
-            <!-- <img src="{!! url('/').'/'.asset('assets/img/logo.png') !!}" width="50"> -->
+            <!-- <img src="{!! asset('assets/img/logo.png') !!}" width="50"> -->
             <div class="navbar-wrapper">
                <div class="navbar-minimize">
                   <!--               <button id="minimizeSidebar" class="btn btn-just-icon btn-white btn-fab btn-round">
@@ -2627,30 +2627,30 @@
          </div>
       </div>
    </div>
-   <script src="{{ url('/').'/'.asset('assets/js/core/jquery.validate.js') }}"></script>
+   <script src="{{ asset('assets/js/core/jquery.validate.js') }}"></script>
    <!-- Bootstrap -->
-   <script src="{{ url('/').'/'.asset('assets/js/core/popper.min.js') }}"></script>
+   <script src="{{ asset('assets/js/core/popper.min.js') }}"></script>
    <!-- overlayScrollbars -->
-   <script src="{{ url('/').'/'.asset('assets/js/core/bootstrap-material-design.min.js') }}"></script>
+   <script src="{{ asset('assets/js/core/bootstrap-material-design.min.js') }}"></script>
    <!-- DataTables -->
-   <script src="{{ url('/').'/'.asset('assets/js/plugins/jquery.dataTables.min.js') }}"></script>
-   <script src="{{ url('/').'/'.asset('assets/js/plugins/dataTables.responsive.min.js') }}"></script>
-   <script src="{{ url('/').'/'.asset('assets/js/plugins/bootstrap-tagsinput.js') }}"></script>
+   <script src="{{ asset('assets/js/plugins/jquery.dataTables.min.js') }}"></script>
+   <script src="{{ asset('assets/js/plugins/dataTables.responsive.min.js') }}"></script>
+   <script src="{{ asset('assets/js/plugins/bootstrap-tagsinput.js') }}"></script>
    <!-- OPTIONAL SCRIPTS -->
    <!-- Select2 -->
-   <script src="{{ url('/').'/'.asset('assets/plugins/select2/js/select2.full.min.js') }}"></script>
-   <script src="{{ url('/').'/'.asset('assets/js/plugins/perfect-scrollbar.jquery.min.js') }}"></script>
-   <script src="{{ url('/').'/'.asset('assets/js/plugins/sweetalert2.js') }}"></script>
-   <script src="{{ url('/').'/'.asset('assets/js/plugins/jquery.validate.min.js') }}"></script>
+   <script src="{{ asset('assets/plugins/select2/js/select2.full.min.js') }}"></script>
+   <script src="{{ asset('assets/js/plugins/perfect-scrollbar.jquery.min.js') }}"></script>
+   <script src="{{ asset('assets/js/plugins/sweetalert2.js') }}"></script>
+   <script src="{{ asset('assets/js/plugins/jquery.validate.min.js') }}"></script>
    <!-- jquery-validation -->
-   <script src="{{ url('/').'/'.asset('assets/js/plugins/jquery.bootstrap-wizard.js') }}"></script>
-   <script src="{{ url('/').'/'.asset('assets/js/plugins/bootstrap-selectpicker.js') }}"></script>
-   <script src="{{ url('/').'/'.asset('assets/js/plugins/bootstrap-datetimepicker.min.js') }}"></script>
+   <script src="{{ asset('assets/js/plugins/jquery.bootstrap-wizard.js') }}"></script>
+   <script src="{{ asset('assets/js/plugins/bootstrap-selectpicker.js') }}"></script>
+   <script src="{{ asset('assets/js/plugins/bootstrap-datetimepicker.min.js') }}"></script>
    <!-- OPTIONAL SCRIPTS -->
-   <script src="{{ url('/').'/'.asset('assets/js/plugins/chartist.min.js') }}"></script>
-   <script src="{{ url('/').'/'.asset('assets/js/plugins/bootstrap-notify.js') }}"></script>
-   <script src="{{ url('/').'/'.asset('assets/js/material-dashboard.js?v=2.1.2') }}"></script>
-   <script src="{{ url('/').'/'.asset('assets/demo/demo.js') }}"></script>
+   <script src="{{ asset('assets/js/plugins/chartist.min.js') }}"></script>
+   <script src="{{ asset('assets/js/plugins/bootstrap-notify.js') }}"></script>
+   <script src="{{ asset('assets/js/material-dashboard.js?v=2.1.2') }}"></script>
+   <script src="{{ asset('assets/demo/demo.js') }}"></script>
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" integrity="sha512-hievggED+/IcfxhYRSr4Auo1jbiOczpqpLZwfTVL/6hFACdbI3WQ8S9NCX50gsM9QVE+zLk/8wb9TlgriFbX+Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js" integrity="sha512-F636MAkMAhtTplahL9F6KmTfxTmYcAcjcCkyu0f0voT3N/6vzAuJ4Num55a0gEJ+hRLHhdz3vDvZpf6kqgEa5w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
    <script>

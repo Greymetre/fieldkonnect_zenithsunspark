@@ -15,6 +15,7 @@ use App\Models\BeatCustomer;
 use App\Models\BeatSchedule;
 use App\Models\EmployeeDetail;
 use App\Models\ParentDetail;
+use App\Models\FirmType;
 
 use Maatwebsite\Excel\Concerns\ToModel;
 use Illuminate\Support\Collection;
@@ -52,6 +53,10 @@ class CustomersImport implements ToCollection, WithValidation, WithHeadingRow, W
     $attachments = collect([]);
      
     foreach ($rows as $ky=>$row) {
+      $firmTypeId = $this->resolveFirmTypeId($row);
+      $customerTypeId = $row['customer_type_id'] ?? $row['customertype'] ?? 1;
+      $address1 = $row['address1'] ?? $row['address'] ?? null;
+
       if (isset($row['mobile']) && strlen(preg_replace('/\s+/', '', $row['mobile'])) == 10) {
         $row['mobile'] = '91' . preg_replace('/\s+/', '', $row['mobile']);
       }
@@ -65,7 +70,7 @@ class CustomersImport implements ToCollection, WithValidation, WithHeadingRow, W
 
       if (!empty($row['customer_id'])) {
 
-        Customers::where('id', '=', $row['customer_id'])->update([
+        $customerData = [
           'name' => $row['firm_name'],
           'active' => $row['status'] ?? 'Y',
           'first_name' => !empty($row['first_name']) ? $row['first_name'] : '',
@@ -78,10 +83,12 @@ class CustomersImport implements ToCollection, WithValidation, WithHeadingRow, W
           'working_status' => !empty($row['working_status']) ? $row['working_status'] : null,
           'creation_date' => !empty($row['creation_date']) ? $row['creation_date'] : null,
           'sap_code' => !empty($row['sap_code']) ? $row['sap_code'] : null,
-          'customertype' => !empty($row['customer_type_id']) ? $row['customer_type_id'] : null,
+          'customertype' => $customerTypeId,
+        ];
 
+        $customerData['firmtype'] = $firmTypeId;
 
-        ]);
+        Customers::where('id', '=', $row['customer_id'])->update($customerData);
 
 
 
@@ -101,7 +108,7 @@ class CustomersImport implements ToCollection, WithValidation, WithHeadingRow, W
           'city_id' => !empty($row['city_id']) ? $row['city_id'] : null,
           'district_id' => !empty($row['district_id']) ? $row['district_id'] : null,
           'state_id' => !empty($row['state_id']) ? $row['state_id'] : null,
-          'address1' => !empty($row['address']) ? $row['address'] : null,
+          'address1' => $address1,
           'landmark' => !empty($row['market_place']) ? $row['market_place'] : null,
 
         ]);
@@ -158,23 +165,23 @@ class CustomersImport implements ToCollection, WithValidation, WithHeadingRow, W
         if ($customer = Customers::updateOrCreate(['mobile' =>  !empty($row['mobile']) ? (string)$row['mobile'] : '',],[
           'active' => 'Y',
           'name' => !empty($row['firm_name']) ? ucfirst($row['firm_name']) : '',
-          'first_name' => !empty($row['first_name']) ? ucfirst($row['first_name']) : '',
-          'last_name' => !empty($row['last_name']) ? ucfirst($row['last_name']) : '',
+          'first_name' => !empty($row['first_name']) ? ucfirst($row['first_name']) : null,
+          'last_name' => !empty($row['last_name']) ? ucfirst($row['last_name']) : null,
           'email' => !empty($row['email']) ? $row['email'] : null,
           'working_status' => !empty($row['working_status']) ? $row['working_status'] : null,
           'creation_date' => !empty($row['creation_date']) ? $row['creation_date'] : null,
           'sap_code' => !empty($row['sap_code']) ? $row['sap_code'] : null,
-          'password' => !empty($row['password']) ? Hash::make($row['password']) : '',
-          'notification_id' => !empty($row['notification_id']) ? $row['notification_id'] : '',
-          'latitude' => !empty($row['latitude']) ? $row['latitude'] : '',
-          'longitude' => !empty($row['longitude']) ? $row['longitude'] : '',
-          'device_type' => !empty($row['device_type']) ? ucfirst($row['device_type']) : '',
-          'gender' => !empty($row['gender']) ? ucfirst($row['gender']) : '',
+          'password' => !empty($row['password']) ? Hash::make($row['password']) : null,
+          'notification_id' => !empty($row['notification_id']) ? $row['notification_id'] : null,
+          'latitude' => !empty($row['latitude']) ? $row['latitude'] : null,
+          'longitude' => !empty($row['longitude']) ? $row['longitude'] : null,
+          'device_type' => !empty($row['device_type']) ? ucfirst($row['device_type']) : null,
+          'gender' => !empty($row['gender']) ? ucfirst($row['gender']) : null,
           'customer_code' => !empty($row['customer_code']) ? $row['customer_code'] : null,
-          'profile_image' =>  !empty($row['profile_image']) ? $row['profile_image'] : '',
+          'profile_image' =>  !empty($row['profile_image']) ? $row['profile_image'] : null,
           'status_id' =>  !empty($row['status_id']) ? $row['status_id'] : 2,
-          'customertype' =>  !empty($row['customertype']) ? $row['customertype'] : 1,
-          'firmtype' =>  !empty($row['firmtype']) ? $row['firmtype'] : null,
+          'customertype' => $customerTypeId,
+          'firmtype' => $firmTypeId,
           // 'created_by' => $user_id,
           'created_by' => Auth::user()->id,
           //'executive_id' => $executive_id,
@@ -231,10 +238,10 @@ class CustomersImport implements ToCollection, WithValidation, WithHeadingRow, W
           $addressdetails->push([
             'active' => 'Y',
             'customer_id' => $customer['id'],
-            'address1' => !empty($row['address1']) ? $row['address1'] : '',
-            'address2' => !empty($row['address2']) ? $row['address2'] : '',
-            'landmark' => !empty($row['landmark']) ? $row['landmark'] : '',
-            'locality' => !empty($row['locality']) ? $row['locality'] : '',
+            'address1' => $address1,
+            'address2' => !empty($row['address2']) ? $row['address2'] : null,
+            'landmark' => !empty($row['landmark']) ? $row['landmark'] : null,
+            'locality' => !empty($row['locality']) ? $row['locality'] : null,
             'country_id' => !empty($row['country_id']) ? $row['country_id'] : null,
             'state_id' => !empty($row['state_id']) ? $row['state_id'] : null,
             // 'district_id' => !empty($city['district_id'])? $city['district_id']:null,
@@ -275,8 +282,41 @@ class CustomersImport implements ToCollection, WithValidation, WithHeadingRow, W
   public function rules(): array
   {
     return [
-      //'name' => 'required|string|regex:/[a-zA-Z0-9\s]+/',
+      'firm_name' => 'required|string|min:2|max:200',
+      'mobile' => 'required',
+      'address1' => 'required_without:address|nullable|string|max:250',
+      'address' => 'required_without:address1|nullable|string|max:250',
+      'customer_type_id' => 'nullable|integer|exists:customer_types,id',
+      'customertype' => 'nullable|integer|exists:customer_types,id',
+      'firm_type_id' => 'required_without_all:firm_type,firmtype|nullable|integer|exists:firm_types,id',
+      'firm_type' => 'required_without_all:firm_type_id,firmtype|nullable|string|exists:firm_types,firmtype_name',
+      'firmtype' => 'required_without_all:firm_type_id,firm_type|nullable|integer|exists:firm_types,id',
     ];
+  }
+
+  /**
+   * Resolve the Firm Type from the new name/ID columns while keeping support
+   * for the legacy "firmtype" ID column.
+   */
+  private function resolveFirmTypeId($row): ?int
+  {
+    $firmTypeId = $row['firm_type_id'] ?? $row['firmtype'] ?? null;
+
+    if (!empty($firmTypeId)) {
+      $resolvedId = FirmType::whereKey($firmTypeId)->value('id');
+      if ($resolvedId) {
+        return $resolvedId;
+      }
+    }
+
+    $firmTypeName = trim((string) ($row['firm_type'] ?? ''));
+
+    if ($firmTypeName === '') {
+      return null;
+    }
+
+    return FirmType::whereRaw('LOWER(firmtype_name) = ?', [mb_strtolower($firmTypeName)])
+      ->value('id');
   }
 
   public function batchSize(): int

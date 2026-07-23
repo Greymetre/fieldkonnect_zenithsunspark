@@ -38,19 +38,28 @@ class ShippingAddress extends Model
             
             $created_at = getcurentDateTime();
             $address = ShippingAddress::firstOrNew(array('customer_id' => $request['customer_id']));
+            $sameAddress = !empty($request['same_address']);
             $address->active = 'Y';
             $address->customer_id = !empty($request['customer_id'])? $request['customer_id']:null;
-            $address->address1 = !empty($request['shipping_address1'])? ucfirst($request['shipping_address1']):'';
-            $address->address2 = !empty($request['shipping_address2'])? ucfirst($request['shipping_address2']):'';
-            $address->landmark = !empty($request['shipping_landmark'])? ucfirst($request['shipping_landmark']):'';
-            $address->locality = !empty($request['shipping_locality'])? $request['shipping_locality']:'';
+            $address->address1 = $sameAddress
+                ? ucfirst($request['address1'])
+                : (!empty($request['shipping_address1']) ? ucfirst($request['shipping_address1']) : null);
+            $address->address2 = $sameAddress
+                ? (!empty($request['address2']) ? ucfirst($request['address2']) : null)
+                : (!empty($request['shipping_address2']) ? ucfirst($request['shipping_address2']) : null);
+            $address->landmark = $sameAddress
+                ? (!empty($request['landmark']) ? ucfirst($request['landmark']) : null)
+                : (!empty($request['shipping_landmark']) ? ucfirst($request['shipping_landmark']) : null);
+            $address->locality = $sameAddress
+                ? (!empty($request['locality']) ? $request['locality'] : null)
+                : (!empty($request['shipping_locality']) ? $request['shipping_locality'] : null);
             $address->user_id = !empty($request['shipping_user_id'])? $request['shipping_user_id']:null;
-            $address->country_id = !empty($request['shipping_country_id'])? $request['shipping_country_id']:null;
-            $address->state_id = !empty($request['shipping_state_id'])? $request['shipping_state_id']:null;
-            $address->district_id = !empty($request['shipping_district_id'])? $request['shipping_district_id']:null;
-            $address->city_id = !empty($request['shipping_city_id'])? $request['shipping_city_id']:null;
-            $address->pincode_id = !empty($request['shipping_pincode_id'])? $request['shipping_pincode_id']:null;
-            $address->zipcode = !empty($request['shipping_zipcode'])? $request['shipping_zipcode']:'';
+            $address->country_id = $sameAddress ? ($request['country_id'] ?? null) : ($request['shipping_country_id'] ?? null);
+            $address->state_id = $sameAddress ? ($request['state_id'] ?? null) : ($request['shipping_state_id'] ?? null);
+            $address->district_id = $sameAddress ? ($request['district_id'] ?? null) : ($request['shipping_district_id'] ?? null);
+            $address->city_id = $sameAddress ? ($request['city_id'] ?? null) : ($request['shipping_city_id'] ?? null);
+            $address->pincode_id = $sameAddress ? ($request['pincode_id'] ?? null) : ($request['shipping_pincode_id'] ?? null);
+            $address->zipcode = $sameAddress ? ($request['zipcode'] ?? null) : ($request['shipping_zipcode'] ?? null);
             if($address === null)
             {
                 $address->created_at = $created_at;

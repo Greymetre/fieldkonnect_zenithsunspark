@@ -59,11 +59,17 @@ class CustomerController extends Controller
     {
         try {
             $user = $request->user();
+            if (!$request->filled('customertype')) {
+                $request->merge(['customertype' => 1]);
+            }
             $validator = Validator::make($request->all(), [
-                'address' => 'nullable|min:2|max:100|string|regex:/[a-zA-Z0-9\s]+/',
+                'name' => 'required|min:2|max:200|string',
+                'address1' => 'required|min:2|max:250|string',
+                'shipping_address1' => 'required_unless:same_address,1|nullable|min:2|max:250|string',
                 'mobile'  => 'required|numeric|unique:customers,mobile',
                 // 'email'  => 'email|unique:customers,email',
-                'customertype'       => 'nullable|exists:customer_types,id',
+                'customertype'       => 'required|exists:customer_types,id',
+                'firmtype'           => 'required|integer|exists:firm_types,id',
             ]);
             if ($validator->fails()) {
                 return response()->json(['status' => 'error', 'message' => $validator->messages()->all()], $this->badrequest);
@@ -923,12 +929,20 @@ class CustomerController extends Controller
     public function updateCustomerProfile(Request $request)
     {
         try {
+            if (!$request->filled('customertype')) {
+                $request->merge(['customertype' => 1]);
+            }
             $name = explode(" ", $request['full_name']);
             $request['last_name'] = isset($request['last_name']) ? $request['last_name'] : array_pop($name);
             $request['first_name'] = isset($request['first_name']) ? $request['first_name'] : implode(" ", $name);
 
             $validator = Validator::make($request->all(), [
                 'name'      => 'required',
+                'mobile'    => 'required',
+                'customertype' => 'required|integer|exists:customer_types,id',
+                'firmtype'  => 'required|integer|exists:firm_types,id',
+                'address1'  => 'required|min:2|max:250|string',
+                'shipping_address1' => 'required_unless:same_address,1|nullable|min:2|max:250|string',
                 // 'email'     => 'required|email|unique:customers,email,'.$request->customer_id,
                 // 'mobile'    => 'required|unique:customers,mobile,'.$request->customer_id,
             ]);
@@ -945,6 +959,7 @@ class CustomerController extends Controller
                 'latitude'  => isset($request->latitude) ? $request->latitude : null,
                 'longitude' => isset($request->longitude) ? $request->longitude : null,
                 'gender'    => isset($request->gender) ? $request->gender : '',
+                'customertype' => $request->customertype,
                 'firmtype'  => isset($request->firmtype) ? $request->firmtype : null,
                 //'parent_id'  => isset($request->parent_id) ? $request->parent_id : null,
                 'contact_number'  => isset($request->contact_number) ? $request->contact_number : null,

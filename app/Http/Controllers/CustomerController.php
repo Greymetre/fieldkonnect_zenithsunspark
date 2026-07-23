@@ -306,7 +306,10 @@ class CustomerController extends Controller
             })
             ->select('id', 'country_name')->orderBy('id', 'desc')->get();
         $customertype = CustomerType::select('id', 'customertype_name')->orderBy('id', 'desc')->get();
-        $firmtype = FirmType::select('id', 'firmtype_name')->orderBy('id', 'desc')->get();
+        $firmtype = FirmType::where('active', 'Y')
+            ->select('id', 'firmtype_name')
+            ->orderBy('firmtype_name')
+            ->get();
         $fields = Field::with('fieldsData')->whereIn('module', $customertype->pluck('id'))->where('active', '=', 'Y')->get();
         $users = User::whereDoesntHave('roles', function ($query) {
             $query->wherein('id', config('constants.customer_roles'));
@@ -330,7 +333,10 @@ class CustomerController extends Controller
         $pincodes = Pincode::where('active', '=', 'Y')->select('id', 'pincode')->orderBy('id', 'desc')->get();
         $countries = Country::where('active', '=', 'Y')->select('id', 'country_name')->orderBy('id', 'desc')->get();
         $customertype = CustomerType::where('type_name', '=', 'distributor')->select('id', 'customertype_name')->orderBy('id', 'desc')->get();
-        $firmtype = FirmType::select('id', 'firmtype_name')->orderBy('id', 'desc')->get();
+        $firmtype = FirmType::where('active', 'Y')
+            ->select('id', 'firmtype_name')
+            ->orderBy('firmtype_name')
+            ->get();
         $fields = Field::with('fieldsData')->whereIn('module', $customertype->pluck('id'))->where('active', '=', 'Y')->get();
         return view('customers.distributor_add', compact('pincodes', 'customertype', 'firmtype', 'pincodes', 'countries', 'fields'))->with('customers', $this->customers);
     }
@@ -559,7 +565,15 @@ class CustomerController extends Controller
             }
         })->select('id', 'country_name')->orderBy('id', 'desc')->get();
         $customertype = CustomerType::select('id', 'customertype_name')->orderBy('id', 'desc')->get();
-        $firmtype = FirmType::select('id', 'firmtype_name')->orderBy('id', 'desc')->get();
+        $firmtype = FirmType::where(function ($query) use ($customers) {
+                $query->where('active', 'Y');
+                if (!empty($customers->firmtype)) {
+                    $query->orWhere('id', $customers->firmtype);
+                }
+            })
+            ->select('id', 'firmtype_name')
+            ->orderBy('firmtype_name')
+            ->get();
         $customers['gstin_image'] = $customers['customerdocuments']->where('document_name', 'gstin')->pluck('file_path')->first();
         $customers['pan_image'] = $customers['customerdocuments']->where('document_name', 'pan')->pluck('file_path')->first();
         $customers['aadhar_image'] = $customers['customerdocuments']->where('document_name', 'aadhar')->pluck('file_path')->first();
@@ -587,10 +601,20 @@ class CustomerController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            if (!$request->filled('customertype')) {
+                $request->merge(['customertype' => 1]);
+            }
+
             $validator = Validator::make($request->all(), [
                 'gstin_no' => 'nullable|min:15|max:15',
                 'pan_no' => 'nullable|regex:/^[a-zA-Z]{5}\d{4}[a-zA-Z]$/',
                 'aadhar_no' => 'nullable|numeric|digits:12',
+                'firmtype' => 'required|integer|exists:firm_types,id',
+                'name' => 'required|min:2|max:100|string',
+                'mobile' => 'required',
+                'customertype' => 'required|integer|exists:customer_types,id',
+                'address1' => 'required|min:2|max:250|string',
+                'shipping_address1' => 'required_unless:same_address,1|nullable|min:2|max:250|string',
             ]);
             if ($validator->fails()) {
                 return redirect()->back()

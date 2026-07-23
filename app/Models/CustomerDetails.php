@@ -21,24 +21,18 @@ class CustomerDetails extends Model
             $customer = CustomerDetails::firstOrNew(array('customer_id' => $request['customer_id']));
             $customer->active = 'Y';
             $customer->customer_id = isset($request['customer_id'])? $request['customer_id']:null;
-            $customer->gstin_no = isset($request['gstin_no'])? ucfirst($request['gstin_no']):'';
-            $customer->pan_no = isset($request['pan_no'])? ucfirst($request['pan_no']):'';
-            $customer->aadhar_no = isset($request['aadhar_no'])? ucfirst($request['aadhar_no']):'';
-            $customer->account_holder = isset($request['account_holder'])? ucfirst($request['account_holder']):'';
-            $customer->account_number = isset($request['account_number'])? $request['account_number']:'';
-            $customer->bank_name = isset($request['bank_name'])? $request['bank_name']:'';
-            $customer->ifsc_code = isset($request['ifsc_code'])? $request['ifsc_code']:'';
-            $customer->otherid_no = isset($request['otherid_no'])? $request['otherid_no']:'';
+            $customer->gstin_no = !empty($request['gstin_no'])? ucfirst($request['gstin_no']):null;
+            $customer->pan_no = !empty($request['pan_no'])? ucfirst($request['pan_no']):null;
+            $customer->aadhar_no = !empty($request['aadhar_no'])? ucfirst($request['aadhar_no']):null;
+            $customer->account_holder = !empty($request['account_holder'])? ucfirst($request['account_holder']):null;
+            $customer->account_number = !empty($request['account_number'])? $request['account_number']:null;
+            $customer->bank_name = !empty($request['bank_name'])? $request['bank_name']:null;
+            $customer->ifsc_code = !empty($request['ifsc_code'])? $request['ifsc_code']:null;
+            $customer->otherid_no = !empty($request['otherid_no'])? $request['otherid_no']:null;
             $customer->enrollment_date = isset($request['enrollment_date'])? $request['enrollment_date']:null;
             $customer->approval_date = isset($request['approval_date'])? $request['approval_date']:null;
-            if($request['visit_status'])
-            {
-                $customer->visit_status = isset($request['visit_status'])? $request['visit_status']:'';
-            }
-            if($request['grade'])
-            {
-                $customer->grade = isset($request['grade'])? $request['grade']:'';
-            }
+            $customer->visit_status = !empty($request['visit_status']) ? $request['visit_status'] : null;
+            $customer->grade = !empty($request['grade']) ? $request['grade'] : null;
             $customer->created_at = getcurentDateTime();
             if($customer->save())
             {

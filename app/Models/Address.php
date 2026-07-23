@@ -41,16 +41,16 @@ class Address extends Model
             $address->active = 'Y';
             $address->customer_id = !empty($request['customer_id'])? $request['customer_id']:null;
             $address->address1 = !empty($request['address1'])? ucfirst($request['address1']):'';
-            $address->address2 = !empty($request['address2'])? ucfirst($request['address2']):'';
-            $address->landmark = !empty($request['landmark'])? ucfirst($request['landmark']):'';
-            $address->locality = !empty($request['locality'])? $request['locality']:'';
+            $address->address2 = !empty($request['address2'])? ucfirst($request['address2']):null;
+            $address->landmark = !empty($request['landmark'])? ucfirst($request['landmark']):null;
+            $address->locality = !empty($request['locality'])? $request['locality']:null;
             $address->user_id = !empty($request['user_id'])? $request['user_id']:null;
             $address->country_id = !empty($request['country_id'])? $request['country_id']:null;
             $address->state_id = !empty($request['state_id'])? $request['state_id']:null;
             $address->district_id = !empty($request['district_id'])? $request['district_id']:null;
             $address->city_id = !empty($request['city_id'])? $request['city_id']:null;
             $address->pincode_id = !empty($request['pincode_id'])? $request['pincode_id']:null;
-            $address->zipcode = !empty($request['zipcode'])? $request['zipcode']:'';
+            $address->zipcode = !empty($request['zipcode'])? $request['zipcode']:null;
             if($address === null)
             {
                 $address->created_at = $created_at;
