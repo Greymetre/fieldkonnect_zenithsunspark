@@ -35,6 +35,12 @@
           'id' => 'storeCustomerData',
           'files'=>true
           ]) !!}
+          @if(!$customers->exists && in_array(request('source'), ['purchase-order', 'sales-order'], true))
+          <input type="hidden" name="source" value="{{ request('source') }}">
+          @if(request('source') === 'sales-order')
+          <input type="hidden" name="return_order_type" value="{{ in_array(request('order_type'), ['b2b', 'b2c'], true) ? request('order_type') : 'b2c' }}">
+          @endif
+          @endif
           <input type="hidden" name="id" id="customer_id" value="{!! $customers['id'] !!}">
           <div class="first-box">
             <div class="row">

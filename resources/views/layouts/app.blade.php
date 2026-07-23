@@ -1052,6 +1052,40 @@
                      </div>
                   </li>
                   @endif
+                  @if(auth()->user()->can('purchase_order_access') || auth()->user()->can('receive_stock_access'))
+                  <li class="nav-link {{ request()->is('purchase-orders*') || request()->is('receive-stock*') ? 'active' : '' }}">
+                     <a class="collapsed hoveradd" data-toggle="collapse" href="#procurementMenu"
+                        aria-expanded="{{ request()->is('purchase-orders*') || request()->is('receive-stock*') ? 'true' : 'false' }}">
+                        <i class="material-icons icon">inventory_2</i>
+                        <span>Procurement</span>
+                        <div class="d-none mobile_hide">Procurement</div>
+                     </a>
+                     <div class="collapse {{ request()->is('purchase-orders*') || request()->is('receive-stock*') ? 'show' : '' }}" id="procurementMenu">
+                        <ul class="navd">
+                           @if(auth()->user()->can('purchase_order_access'))
+                           <li class="nav-link-btn {{ request()->is('purchase-orders*') ? 'active' : '' }}">
+                              <a class="hoveradd2" href="{{ route('purchase-orders.index') }}">
+                                 <i class="material-icons icon">south</i>
+                                 <span>Purchase Orders</span>
+                                 <div class="d-none mobile_hide">Purchase Orders</div>
+                              </a>
+                           </li>
+                           @endif
+                           @if(auth()->user()->can('receive_stock_access'))
+                           @php($pendingReceiveCount = \App\Models\PurchaseOrder::where('status', 'approved')->count())
+                           <li class="nav-link-btn {{ request()->is('receive-stock*') ? 'active' : '' }}">
+                              <a class="hoveradd2" href="{{ route('procurement.receive-stock') }}">
+                                 <i class="material-icons icon">check</i>
+                                 <span>Receive Stock (GRN)</span>
+                                 <span class="badge badge-warning receive-stock-count" style="{{ $pendingReceiveCount ? '' : 'display:none' }}">{{ $pendingReceiveCount }}</span>
+                                 <div class="d-none mobile_hide">Receive Stock (GRN)</div>
+                              </a>
+                           </li>
+                           @endif
+                        </ul>
+                     </div>
+                  </li>
+                  @endif
                   @if(auth()->user()->can(['expenses_type']))
                   <!-- <li class="nav-item {{ request()->is('expenses_type') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ url('expenses_type') }}">
@@ -1061,14 +1095,14 @@
                         </li> -->
                   @endif
                   @if(auth()->user()->can('product_access'))
-                  <li class="nav-link {{ request()->is('categories*') || request()->is('subcategories*') || request()->is('brands*') || request()->is('products*') || request()->is('units*') || request()->is('production*') ? 'active' : '' }}">
-                     <a class="collapsed hoveradd" data-toggle="collapse" href="#productMenu" aria-expanded="false">
+                  <li class="nav-link {{ request()->is('categories*') || request()->is('subcategories*') || request()->is('brands*') || request()->is('products*') || request()->is('units*') || request()->is('production*') || request()->is('stock-summary*') || request()->is('inventory-ledger*') ? 'active' : '' }}">
+                     <a class="collapsed hoveradd" data-toggle="collapse" href="#productMenu" aria-expanded="{{ request()->is('stock-summary*') || request()->is('inventory-ledger*') ? 'true' : 'false' }}">
                         <i class="material-icons icon">conveyor_belt</i>
                         <span> {!! trans('panel.sidemenu.product_master') !!}
                         </span>
                         <div class="d-none mobile_hide">{!! trans('panel.sidemenu.product_master') !!}</div>
                      </a>
-                     <div class="collapse" id="productMenu" style="">
+                     <div class="collapse {{ request()->is('stock-summary*') || request()->is('inventory-ledger*') ? 'show' : '' }}" id="productMenu" style="">
                         <ul class="navd">
                            @if(auth()->user()->can('category_access'))
                            <li class="nav-link-btn {{ request()->is('categories*') ? 'active' : '' }}">
@@ -1168,6 +1202,20 @@
                               </a>
                            </li>
                            @endif
+                           <li class="nav-link-btn {{ request()->is('stock-summary*') ? 'active' : '' }}">
+                              <a class="hoveradd2" href="{{ route('inventory.stock-summary') }}">
+                                 <i class="material-icons icon">view_list</i>
+                                 <span>Stock Summary</span>
+                                 <div class="d-none mobile_hide">Stock Summary</div>
+                              </a>
+                           </li>
+                           <li class="nav-link-btn {{ request()->is('inventory-ledger*') ? 'active' : '' }}">
+                              <a class="hoveradd2" href="{{ route('inventory.ledger') }}">
+                                 <i class="material-icons icon">format_align_justify</i>
+                                 <span>Inventory Ledger</span>
+                                 <div class="d-none mobile_hide">Inventory Ledger</div>
+                              </a>
+                           </li>
                         </ul>
                      </div>
                   </li>
@@ -1212,15 +1260,38 @@
                      </a>
                   </li>
                   @endif
-                  @if(auth()->user()->can('target_users_access'))
-                  <li class="nav-link {{ request()->is('sales_users*') || request()->is('sales_dealer*') ? 'active' : '' }}">
-                     <a class="collapsed hoveradd" data-toggle="collapse" href="#salesUserMenu" aria-expanded="false">
+                  @if(auth()->user()->can('target_users_access') || auth()->user()->can('sales_order_access') || auth()->user()->can('dispatch_access'))
+                  <li class="nav-link {{ request()->is('sales-orders*') || request()->is('dispatch*') || request()->is('sales_users*') || request()->is('sales_dealer*') ? 'active' : '' }}">
+                     <a class="collapsed hoveradd" data-toggle="collapse" href="#salesUserMenu"
+                        aria-expanded="{{ request()->is('sales-orders*') || request()->is('dispatch*') ? 'true' : 'false' }}">
                         <i class="material-icons icon">real_estate_agent</i>
                         <span> {!! trans('panel.sidemenu.sales_users') !!} </span>
                         <div class="d-none mobile_hide"> {!! trans('panel.sidemenu.sales_users') !!}</div>
                      </a>
-                     <div class="collapse" id="salesUserMenu" style="">
+                     <div class="collapse {{ request()->is('sales-orders*') || request()->is('dispatch*') ? 'show' : '' }}" id="salesUserMenu" style="">
                         <ul class="navd">
+                           @if(auth()->user()->can('sales_order_access'))
+                           @php($pendingSalesOrderCount = \App\Models\SalesOrder::whereIn('status', ['payment_pending', 'payment_partial'])->count())
+                           <li class="nav-link-btn {{ request()->is('sales-orders*') ? 'active' : '' }}">
+                              <a class="hoveradd2" href="{{ route('sales-orders.index') }}">
+                                 <i class="material-icons icon">north</i>
+                                 <span>Sales Orders</span>
+                                 <span class="badge badge-warning sales-order-count" style="{{ $pendingSalesOrderCount ? '' : 'display:none' }}">{{ $pendingSalesOrderCount }}</span>
+                                 <div class="d-none mobile_hide">Sales Orders</div>
+                              </a>
+                           </li>
+                           @endif
+                           @if(auth()->user()->can('dispatch_access'))
+                           <li class="nav-link-btn {{ request()->is('dispatch*') ? 'active' : '' }}">
+                              <a class="hoveradd2" href="{{ route('dispatch.index') }}">
+                                 <i class="material-icons icon">local_shipping</i>
+                                 <span>Dispatch</span>
+                                 @php($dispatchCount = \App\Models\SalesOrder::whereIn('status', ['confirmed', 'partially_dispatched'])->count())
+                                 <span class="badge badge-warning dispatch-count" style="{{ $dispatchCount ? '' : 'display:none' }}">{{ $dispatchCount }}</span>
+                                 <div class="d-none mobile_hide">Dispatch</div>
+                              </a>
+                           </li>
+                           @endif
                            @if(auth()->user()->can('target_users_access_sales'))
                            <li class="nav-link-btn {{ request()->is('sales_users*') ? 'active' : '' }}">
                               <a class="hoveradd2" href="{{ url('sales_users/target_users') }}">
@@ -1486,14 +1557,14 @@
                   </li>
                   @endif
                   @if(auth()->user()->can(['account_access']))
-                  <li class="nav-link {{ request()->is('expenses*') || request()->is('tax_invoice*') || request()->is('expenses_type*') || request()->is('estimate*') ? 'active' : '' }}">
-                     <a class="collapsed hoveradd" data-toggle="collapse" href="#accountMenu" aria-expanded="false">
+                  <li class="nav-link {{ request()->is('expenses*') || request()->is('tax_invoice*') || request()->is('expenses_type*') || request()->is('estimate*') || request()->is('payment-ledger*') ? 'active' : '' }}">
+                     <a class="collapsed hoveradd" data-toggle="collapse" href="#accountMenu" aria-expanded="{{ request()->is('payment-ledger*') ? 'true' : 'false' }}">
                         <i class="material-icons icon">attribution</i>
                         <span> {!! trans('panel.sidemenu.account') !!}
                         </span>
                         <div class="d-none mobile_hide"> {!! trans('panel.sidemenu.account') !!}</div>
                      </a>
-                     <div class="collapse" id="accountMenu" style="">
+                     <div class="collapse {{ request()->is('payment-ledger*') ? 'show' : '' }}" id="accountMenu" style="">
                         <ul class="navd">
                            @if(auth()->user()->can(['expenses_type']))
                            <li class="nav-link-btn {{ request()->is('expenses_type*') ? 'active' : '' }}">
@@ -1549,37 +1620,15 @@
                               </a>
                            </li>
                            @endif
-                           @if(auth()->user()->can('payments_access'))
-                           <li class="nav-link-btn add_icon">
-                              <a class="hoveradd" data-toggle="collapse" href="#paymentManu" aria-expanded="false">
-                                 <i class="material-icons icon">paid</i>
-                                 <span>Payments</span>
-                                 <div class="d-none mobile_hide"> Payments</div>
+                           @if(auth()->user()->can('payment_ledger_access'))
+                           <li class="nav-link-btn {{ request()->is('payment-ledger*') ? 'active' : '' }}">
+                              <a class="hoveradd2" href="{{ route('payment-ledger.index') }}">
+                                 <i class="material-icons icon">account_balance_wallet</i>
+                                 <span>Payment Ledger</span>
+                                 <div class="d-none mobile_hide">Payment Ledger</div>
                               </a>
-                           <li class="nav-link-btn">
-                              <div class="collapse" id="paymentManu" style="">
-                                 <ul class="navd">
-                                    @if(auth()->user()->can('payments_create'))
-                                    <li class="nav-link-btn {{ request()->is('payments*') ? 'active' : '' }}">
-                                       <a class="hoveradd2" href="{{ url('payments/create') }}">
-                                          <i class="material-icons icon">currency_exchange</i>
-                                          <span>Payment Recieved</span>
-                                          <div class="d-none mobile_hide"> Payment Recieved</div>
-                                       </a>
-                                    </li>
-                                    @endif
-                                    <li class="nav-link-btn {{ request()->is('payments*') ? 'active' : '' }}">
-                                       <a class="hoveradd2" href="{{ url('payments') }}">
-                                          <i class="material-icons icon">currency_rupee</i>
-                                          <span>Payments</span>
-                                          <div class="d-none mobile_hide"> Payments</div>
-                                       </a>
-                                    </li>
-                                 </ul>
-                              </div>
                            </li>
-                  </li>
-                  @endif
+                           @endif
                </ul>
             </div>
             </li>
@@ -2641,6 +2690,101 @@
    <script src="{{ asset('assets/plugins/select2/js/select2.full.min.js') }}"></script>
    <script src="{{ asset('assets/js/plugins/perfect-scrollbar.jquery.min.js') }}"></script>
    <script src="{{ asset('assets/js/plugins/sweetalert2.js') }}"></script>
+   <style>
+      /* Select2 and datepicker use very high z-index values in the legacy theme. */
+      body > .swal2-container {
+         z-index: 2147483000 !important;
+      }
+   </style>
+   <script>
+      window.appOpenSwal = function (options, restoreModalOnCancel) {
+         $('.select2.select2-hidden-accessible').each(function () {
+            try {
+               $(this).select2('close');
+            } catch (error) {
+               // The field may have been removed with an AJAX modal.
+            }
+         });
+
+         var visibleModal = $('.modal.show:visible').last();
+         var open = function () {
+            return Swal.fire(options).then(function (result) {
+               if (restoreModalOnCancel && result.value !== true && visibleModal.length) {
+                  visibleModal.modal('show');
+               }
+               return result;
+            });
+         };
+
+         if (!visibleModal.length) {
+            return open();
+         }
+
+         return new Promise(function (resolve) {
+            var opened = false;
+            var openAfterModal = function () {
+               if (opened) return;
+               opened = true;
+               open().then(resolve);
+            };
+
+            visibleModal.one('hidden.bs.modal.appSwal', openAfterModal);
+            visibleModal.modal('hide');
+            window.setTimeout(openAfterModal, 450);
+         });
+      };
+
+      window.appSwalSuccess = function (message, title) {
+         return appOpenSwal({
+            title: title || 'Success',
+            text: message || 'Action completed successfully.',
+            type: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonClass: 'btn btn-success',
+            buttonsStyling: false
+         });
+      };
+
+      window.appSwalError = function (message, title) {
+         return appOpenSwal({
+            title: title || 'Error',
+            html: message || 'Something went wrong. Please try again.',
+            type: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonClass: 'btn btn-danger',
+            buttonsStyling: false
+         });
+      };
+
+      window.appSwalConfirm = function (options) {
+         options = options || {};
+         return appOpenSwal({
+            title: options.title || 'Are you sure?',
+            text: options.text || '',
+            type: options.type || 'warning',
+            showCancelButton: true,
+            confirmButtonText: options.confirmButtonText || 'Yes, continue',
+            cancelButtonText: options.cancelButtonText || 'Cancel',
+            confirmButtonClass: options.confirmButtonClass || 'btn btn-theme',
+            cancelButtonClass: 'btn btn-default',
+            buttonsStyling: false,
+            reverseButtons: true
+         }, true).then(function (result) {
+            return result.value === true;
+         });
+      };
+
+      @if(session()->has('message_success'))
+      $(function () {
+         appSwalSuccess(@json(session()->get('message_success')));
+      });
+      @endif
+      @if(session()->has('message_danger'))
+      $(function () {
+         appSwalError(@json(session()->get('message_danger')));
+      });
+      @endif
+   </script>
    <script src="{{ asset('assets/js/plugins/jquery.validate.min.js') }}"></script>
    <!-- jquery-validation -->
    <script src="{{ asset('assets/js/plugins/jquery.bootstrap-wizard.js') }}"></script>

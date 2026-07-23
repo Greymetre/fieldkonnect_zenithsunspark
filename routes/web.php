@@ -17,6 +17,11 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\FieldController;
 use App\Http\Controllers\FirmTypeController;
+use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\SalesOrderController;
+use App\Http\Controllers\PaymentLedgerController;
+use App\Http\Controllers\StockSummaryController;
+use App\Http\Controllers\InventoryLedgerController;
 use App\Http\Controllers\GiftController;
 use App\Http\Controllers\NotesController;
 use App\Http\Controllers\OrderController;
@@ -317,6 +322,27 @@ Route::group(['middleware' => ['auth']], function () {
     Route::any('customer_balance', [CustomerController::class, 'customer_balance'])->name('customer_balance');
     Route::any('customer_balance/update', [CustomerController::class, 'customer_balance_update'])->name('customer_balance.update');
     Route::any('customer_balance/list', [CustomerController::class, 'customer_balance_list'])->name('customer_balance.list');
+
+    // Procurement
+    Route::resource('purchase-orders', PurchaseOrderController::class);
+    Route::post('purchase-orders/{purchase_order}/approve', [PurchaseOrderController::class, 'approve'])->name('purchase-orders.approve');
+    Route::get('receive-stock', [PurchaseOrderController::class, 'receiveStock'])->name('procurement.receive-stock');
+    Route::get('receive-stock/{purchase_order}', [PurchaseOrderController::class, 'receiveStockModal'])->name('procurement.receive-stock.modal');
+    Route::post('receive-stock/{purchase_order}', [PurchaseOrderController::class, 'storeReceipt'])->name('procurement.receive-stock.store');
+
+    // Inventory and Sales
+    Route::get('stock-summary', [StockSummaryController::class, 'index'])->name('inventory.stock-summary');
+    Route::get('inventory-ledger', [InventoryLedgerController::class, 'index'])->name('inventory.ledger');
+    Route::get('inventory-ledger/export', [InventoryLedgerController::class, 'export'])->name('inventory.ledger.export');
+    Route::resource('sales-orders', SalesOrderController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
+    Route::get('sales-orders/{sales_order}/payment', [SalesOrderController::class, 'paymentModal'])->name('sales-orders.payment.modal');
+    Route::post('sales-orders/{sales_order}/payment', [SalesOrderController::class, 'storePayment'])->name('sales-orders.payment.store');
+    Route::post('sales-orders/{sales_order}/confirm', [SalesOrderController::class, 'confirm'])->name('sales-orders.confirm');
+    Route::get('dispatch', [SalesOrderController::class, 'dispatchIndex'])->name('dispatch.index');
+    Route::get('dispatch/{sales_order}', [SalesOrderController::class, 'dispatchModal'])->name('dispatch.modal');
+    Route::post('dispatch/{sales_order}', [SalesOrderController::class, 'storeDispatch'])->name('dispatch.store');
+    Route::get('payment-ledger', [PaymentLedgerController::class, 'index'])->name('payment-ledger.index');
+    Route::get('payment-ledger/{sales_order}', [PaymentLedgerController::class, 'show'])->name('payment-ledger.show');
 
     //Ware House Routs
     Route::resource('ware_house', WareHouseController::class);

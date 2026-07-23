@@ -282,7 +282,7 @@ class CustomerController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
         ////abort_if(Gate::denies('customer_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         //$status = DB::table('status')->whereIn('id',[1,2,5,7])->select('id', 'name')->orderBy('id','desc')->get();
@@ -310,6 +310,9 @@ class CustomerController extends Controller
             ->select('id', 'firmtype_name')
             ->orderBy('firmtype_name')
             ->get();
+        if ($request->filled('firmtype') && $firmtype->contains('id', (int) $request->firmtype)) {
+            $this->customers->firmtype = (int) $request->firmtype;
+        }
         $fields = Field::with('fieldsData')->whereIn('module', $customertype->pluck('id'))->where('active', '=', 'Y')->get();
         $users = User::whereDoesntHave('roles', function ($query) {
             $query->wherein('id', config('constants.customer_roles'));
@@ -489,6 +492,19 @@ class CustomerController extends Controller
                             ]
                         );
                     }
+                }
+                if ($request->input('source') === 'purchase-order') {
+                    return redirect()->route('purchase-orders.create', ['supplier_id' => $response['customer_id']])
+                        ->with('message_success', $response['message']);
+                }
+                if ($request->input('source') === 'sales-order') {
+                    $orderType = in_array($request->input('return_order_type'), ['b2b', 'b2c'], true)
+                        ? $request->input('return_order_type')
+                        : 'b2c';
+                    return redirect()->route('sales-orders.index', [
+                        'create_type' => $orderType,
+                        'customer_id' => $response['customer_id'],
+                    ])->with('message_success', $response['message']);
                 }
                 return Redirect::to('customers')->with('message_success', $response['message']);
             }
