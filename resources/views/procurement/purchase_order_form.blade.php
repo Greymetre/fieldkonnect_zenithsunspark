@@ -22,22 +22,26 @@
     ];
   })->values()->all();
 @endphp
-<div class="row"><div class="col-md-12"><div class="card">
-  <div class="card-header card-header-icon card-header-theme">
+<div class="row"><div class="col-md-12"><div class="card po-form-card">
+  <div class="card-header card-header-icon card-header-theme po-form-header">
     <div class="card-icon"><i class="material-icons">shopping_cart</i></div>
-    <h4 class="card-title">{{ $editing ? 'Edit' : 'Create' }} Purchase Order
-      <span class="pull-right"><a href="{{ route('purchase-orders.index') }}" class="btn btn-danger btn-just-icon"><i class="material-icons">clear</i></a></span>
-    </h4>
+    <h4 class="card-title">{{ $editing ? 'Edit' : 'Create' }} Purchase Order</h4>
+    <a href="{{ route('purchase-orders.index') }}" class="btn btn-danger btn-just-icon po-close-button" title="Close">
+      <i class="material-icons">close</i>
+    </a>
   </div>
-  <div class="card-body">
-    @if($errors->any())<div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+  <div class="card-body po-form-body">
+    @if($errors->any())
+      <div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
+    @endif
     <form method="POST" action="{{ $editing ? route('purchase-orders.update',$purchaseOrder) : route('purchase-orders.store') }}" id="purchase-order-form">
       @csrf @if($editing) @method('PUT') @endif
-      <div class="row">
-        <div class="col-md-6">
+
+      <div class="row po-top-fields">
+        <div class="col-lg-6">
           <div class="input_section">
             <label>Supplier <span class="text-danger">*</span></label>
-            <div class="d-flex align-items-center">
+            <div class="po-supplier-field">
               <select name="supplier_id" id="supplier_id" class="form-control select2" required>
                 <option value="">Search supplier...</option>
                 @foreach($suppliers as $supplier)
@@ -53,48 +57,146 @@
                 @endforeach
               </select>
               @if($vendorFirmType)
-              <a href="{{ route('customers.create', ['firmtype'=>$vendorFirmType->id, 'source'=>'purchase-order']) }}" class="btn btn-theme btn-sm ml-2 text-nowrap">
-                <i class="material-icons">person_add</i> New Supplier
+              <a href="{{ route('customers.create', ['firmtype'=>$vendorFirmType->id, 'source'=>'purchase-order']) }}" class="btn btn-theme po-new-supplier">
+                <i class="material-icons">person_add</i><span>New Supplier</span>
               </a>
               @endif
             </div>
           </div>
         </div>
-        <div class="col-md-6"><div class="input_section">
-          <label>PO Date <span class="text-danger">*</span></label>
-          <input type="date" name="po_date" class="form-control" value="{{ old('po_date', $editing ? optional($purchaseOrder->po_date)->format('Y-m-d') : date('Y-m-d')) }}" required>
-        </div></div>
-      </div>
-      <div id="supplier-details" class="alert alert-secondary mt-3" style="display:none">
-        <div class="row"><div class="col-md-4"><small>GSTIN</small><strong id="supplier-gstin" class="d-block"></strong></div>
-        <div class="col-md-4"><small>CONTACT</small><strong id="supplier-contact" class="d-block"></strong></div>
-        <div class="col-md-4"><small>LOCATION</small><strong id="supplier-location" class="d-block"></strong></div></div>
+        <div class="col-lg-6">
+          <div class="input_section">
+            <label>PO Date <span class="text-danger">*</span></label>
+            <input type="date" name="po_date" class="form-control" value="{{ old('po_date', $editing ? optional($purchaseOrder->po_date)->format('Y-m-d') : date('Y-m-d')) }}" required>
+          </div>
+        </div>
       </div>
 
-      <h4 class="mt-4">Products</h4>
-      <div class="table-responsive"><table class="table" id="items-table">
-        <thead class="text-primary"><tr><th style="min-width:260px">Product</th><th style="min-width:210px">Stock-In Warehouse</th><th>Qty</th><th>Rate</th><th>GST%</th><th>Amount</th><th></th></tr></thead>
-        <tbody></tbody>
-      </table></div>
-      <button type="button" id="add-item" class="btn btn-link text-primary"><i class="material-icons">add</i> Add product</button>
-      <div class="row justify-content-end"><div class="col-md-4"><div class="alert alert-secondary">
-        <div class="d-flex justify-content-between"><span>Sub Total</span><strong id="subtotal">₹0.00</strong></div>
-        <div class="d-flex justify-content-between"><span>Total GST</span><strong id="total-gst">₹0.00</strong></div><hr>
-        <div class="d-flex justify-content-between"><strong>Grand Total</strong><strong id="grand-total">₹0.00</strong></div>
-      </div></div></div>
-      <div class="input_section"><label>Notes</label><textarea name="notes" class="form-control" rows="2">{{ old('notes',$purchaseOrder->notes ?? '') }}</textarea></div>
-      <div class="alert alert-info">Saving creates a Draft PO. Approve it before stock can be received through GRN.</div>
-      <div class="text-right"><a href="{{ route('purchase-orders.index') }}" class="btn btn-default">Cancel</a>
-        <button class="btn btn-theme">{{ $editing ? 'Update' : 'Create' }} Purchase Order</button></div>
+      <div id="supplier-details" class="po-supplier-details" style="display:none">
+        <div><small>GSTIN</small><strong id="supplier-gstin"></strong></div>
+        <div><small>Contact</small><strong id="supplier-contact"></strong></div>
+        <div><small>Location</small><strong id="supplier-location"></strong></div>
+      </div>
+
+      <div class="po-products-section">
+        <div class="table-responsive">
+          <table class="table" id="items-table">
+            <thead><tr>
+              <th class="po-product-column">Product</th>
+              <th class="po-warehouse-column">Stock-In Warehouse</th>
+              <th class="po-qty-column">Qty</th>
+              <th class="po-rate-column">Rate</th>
+              <th class="po-gst-column">GST%</th>
+              <th class="po-amount-column">Amount</th>
+              <th class="po-action-column"></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <button type="button" id="add-item" class="btn btn-theme po-add-product">
+          <i class="material-icons">add</i> Add Product
+        </button>
+      </div>
+
+      <div class="row po-summary-section">
+        <div class="col-lg-6 order-lg-1 order-2">
+          <div class="po-draft-message">
+            <i class="material-icons">info</i>
+            <span>Saving creates a Draft PO. Approve it before stock can be received through GRN.</span>
+          </div>
+        </div>
+        <div class="col-lg-6 order-lg-2 order-1">
+          <div class="po-totals">
+            <div><span>Sub Total</span><strong id="subtotal">₹0.00</strong></div>
+            <div><span>Total GST</span><strong id="total-gst">₹0.00</strong></div>
+            <div class="po-grand-total"><span>Grand Total</span><strong id="grand-total">₹0.00</strong></div>
+          </div>
+          <div class="input_section po-notes">
+            <label>Notes</label>
+            <textarea name="notes" class="form-control" rows="4">{{ old('notes',$purchaseOrder->notes ?? '') }}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="po-form-actions">
+        <a href="{{ route('purchase-orders.index') }}" class="btn btn-default">Cancel</a>
+        <button class="btn btn-theme">{{ $editing ? 'Update' : 'Create' }} Purchase Order</button>
+      </div>
     </form>
   </div>
 </div></div></div>
+
+<style>
+.po-form-card{min-height:calc(100vh - 155px);overflow:visible}
+.po-form-header{position:relative;padding-right:85px}
+.po-close-button{position:absolute!important;right:22px;top:18px;margin:0!important}
+.po-form-body{padding:32px 28px 28px!important}
+.po-top-fields{margin-top:12px}
+.po-top-fields .input_section label{display:block;color:#69758a;font-weight:600;margin-bottom:8px}
+.po-top-fields .form-control,.po-top-fields .select2-selection--single{height:46px!important}
+.po-top-fields .select2-selection__rendered{line-height:44px!important}
+.po-top-fields .select2-selection__arrow{height:44px!important}
+.po-supplier-field{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start}
+.po-new-supplier{height:46px;margin:0!important;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.po-new-supplier .material-icons{font-size:19px}
+.po-supplier-details{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:8px 0 24px;padding:18px 22px;border:1px dashed #ccd7e5;border-radius:8px;background:#f7f9fc}
+.po-supplier-details small{display:block;text-transform:uppercase;color:#8b99ad;font-weight:600;margin-bottom:4px}
+.po-supplier-details strong{display:block;color:#263548}
+.po-products-section{margin-top:48px}
+#items-table{table-layout:fixed;margin-bottom:12px}
+#items-table thead th{background:#f7f8fb;color:#344154;font-weight:600;border-bottom:1px solid #e5e9ef;padding:14px 12px;white-space:nowrap}
+#items-table tbody td{padding:8px 12px;vertical-align:middle;border-bottom:1px solid #e5e9ef}
+#items-table .po-product-column{width:22%}
+#items-table .po-warehouse-column{width:19%}
+#items-table .po-qty-column{width:12%}
+#items-table .po-rate-column{width:13%}
+#items-table .po-gst-column{width:10%}
+#items-table .po-amount-column{width:15%}
+#items-table .po-action-column{width:52px}
+#items-table .form-control,#items-table .select2-selection--single{height:44px!important}
+#items-table .select2-selection__rendered{line-height:42px!important}
+#items-table .select2-selection__arrow{height:42px!important}
+#items-table .line-total{font-weight:600;color:#27364a}
+.po-add-product{margin:8px 0 0!important;min-width:170px}
+.po-add-product .material-icons{font-size:18px;vertical-align:middle}
+.po-summary-section{margin-top:34px;align-items:end}
+.po-draft-message{display:flex;align-items:flex-start;gap:10px;max-width:470px;padding:18px 20px;border-radius:6px;background:#13bfd1;color:#fff;box-shadow:0 8px 20px rgba(19,191,209,.18)}
+.po-draft-message .material-icons{font-size:21px}
+.po-totals{margin-left:auto;max-width:430px;padding:8px 14px}
+.po-totals>div{display:flex;justify-content:space-between;gap:25px;padding:5px 0;color:#596273}
+.po-totals strong{color:#394150}
+.po-totals .po-grand-total{margin-top:10px;padding-top:14px;border-top:1px solid #cfd5dd;font-size:17px;font-weight:700}
+.po-notes{margin-top:28px}
+.po-notes label{color:#69758a;font-weight:600}
+.po-notes textarea{resize:vertical;min-height:105px}
+.po-form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:24px;padding-top:22px;border-top:1px solid #edf0f4}
+.po-form-actions .btn{min-width:130px}
+.po-form-actions .btn-theme{min-width:215px}
+@media(max-width:1199px){
+  #items-table{min-width:1050px}
+  .po-products-section{margin-top:30px}
+}
+@media(max-width:991px){
+  .po-supplier-field{grid-template-columns:1fr}
+  .po-new-supplier{justify-content:center;width:100%}
+  .po-summary-section{margin-top:24px}
+  .po-totals{max-width:none;margin-bottom:24px}
+  .po-draft-message{max-width:none;margin-top:22px}
+}
+@media(max-width:767px){
+  .po-form-body{padding:24px 16px 20px!important}
+  .po-supplier-details{grid-template-columns:1fr;gap:12px}
+  .po-form-actions{flex-direction:column-reverse}
+  .po-form-actions .btn{width:100%;min-width:0}
+}
+</style>
 
 <script>
 $(function(){
   const products = @json($productOptions);
   const warehouses = @json($warehouseOptions);
   const existing = @json($existingItems);
+  const money = new Intl.NumberFormat('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
   let rowIndex=0;
   const options=(list,selected,label)=>'<option value="">Select '+label+'</option>'+list.map(x=>`<option value="${x.id}" ${String(x.id)===String(selected)?'selected':''}>${x.name}</option>`).join('');
   function initializeItemDropdowns(row) {
@@ -123,8 +225,13 @@ $(function(){
   }
   function recalc(){
     let sub=0,tax=0;
-    $('.item-row').each(function(){let q=+$(this).find('.quantity').val()||0,r=+$(this).find('.rate').val()||0,g=+$(this).find('.gst').val()||0,b=q*r,t=b*g/100;sub+=b;tax+=t;$(this).find('.line-total').text('₹'+(b+t).toFixed(2));});
-    $('#subtotal').text('₹'+sub.toFixed(2));$('#total-gst').text('₹'+tax.toFixed(2));$('#grand-total').text('₹'+(sub+tax).toFixed(2));
+    $('.item-row').each(function(){
+      let q=+$(this).find('.quantity').val()||0,r=+$(this).find('.rate').val()||0,g=+$(this).find('.gst').val()||0,b=q*r,t=b*g/100;
+      sub+=b;tax+=t;$(this).find('.line-total').text('₹'+money.format(b+t));
+    });
+    $('#subtotal').text('₹'+money.format(sub));
+    $('#total-gst').text('₹'+money.format(tax));
+    $('#grand-total').text('₹'+money.format(sub+tax));
   }
   $('#supplier_id').select2({width:'100%',placeholder:'Search supplier by name'});
   function supplierDetails(){const o=$('#supplier_id option:selected');if(o.val()){$('#supplier-details').show();$('#supplier-gstin').text(o.data('gstin')||'-');$('#supplier-contact').text(o.data('contact')||'-');$('#supplier-location').text(o.data('location')||'-');}else $('#supplier-details').hide();}
