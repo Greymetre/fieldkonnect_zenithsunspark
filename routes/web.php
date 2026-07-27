@@ -325,6 +325,7 @@ Route::group(['middleware' => ['auth']], function () {
 
     // Procurement
     Route::resource('purchase-orders', PurchaseOrderController::class);
+    Route::get('purchase-orders/{purchase_order}/pdf', [PurchaseOrderController::class, 'downloadPdf'])->name('purchase-orders.pdf');
     Route::post('purchase-orders/{purchase_order}/approve', [PurchaseOrderController::class, 'approve'])->name('purchase-orders.approve');
     Route::get('receive-stock', [PurchaseOrderController::class, 'receiveStock'])->name('procurement.receive-stock');
     Route::get('receive-stock/{purchase_order}', [PurchaseOrderController::class, 'receiveStockModal'])->name('procurement.receive-stock.modal');
@@ -335,6 +336,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('inventory-ledger', [InventoryLedgerController::class, 'index'])->name('inventory.ledger');
     Route::get('inventory-ledger/export', [InventoryLedgerController::class, 'export'])->name('inventory.ledger.export');
     Route::resource('sales-orders', SalesOrderController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
+    Route::get('sales-orders/{sales_order}/pdf', [SalesOrderController::class, 'downloadPdf'])->name('sales-orders.pdf');
     Route::get('sales-orders/{sales_order}/payment', [SalesOrderController::class, 'paymentModal'])->name('sales-orders.payment.modal');
     Route::post('sales-orders/{sales_order}/payment', [SalesOrderController::class, 'storePayment'])->name('sales-orders.payment.store');
     Route::post('sales-orders/{sales_order}/confirm', [SalesOrderController::class, 'confirm'])->name('sales-orders.confirm');

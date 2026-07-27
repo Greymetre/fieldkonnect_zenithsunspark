@@ -6,6 +6,7 @@ use App\Http\Requests\SalesOrderRequest;
 use App\Models\Customers;
 use App\Models\FirmType;
 use App\Models\InventoryLedger;
+use App\Models\InvoiceSetting;
 use App\Models\Product;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderDispatch;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
+use PDF;
 
 class SalesOrderController extends Controller
 {
@@ -153,8 +155,40 @@ class SalesOrderController extends Controller
     public function show(SalesOrder $salesOrder)
     {
         abort_if(Gate::denies('sales_order_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $salesOrder->load(['customer.customeraddress', 'warehouse', 'items.product']);
+        $salesOrder->load(['customer.customeraddress', 'customer.customerdetails', 'warehouse', 'items.product']);
         return view('sales_orders.partials.show_modal', compact('salesOrder'));
+    }
+
+    public function downloadPdf(SalesOrder $salesOrder)
+    {
+        abort_if(Gate::denies('sales_order_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $salesOrder->load([
+            'customer.customerdetails',
+            'customer.customeraddress.cityname',
+            'customer.customeraddress.districtname',
+            'customer.customeraddress.statename',
+            'customer.customeraddress.pincodename',
+            'warehouse',
+            'items.product.unitmeasures',
+        ]);
+        $settings = InvoiceSetting::with([
+            'address.cityname',
+            'address.districtname',
+            'address.statename',
+            'address.pincodename',
+        ])->first();
+
+        return PDF::loadView('orders.order_pdf', [
+            'order' => $salesOrder,
+            'settings' => $settings,
+            'documentTitle' => 'Sales Order',
+            'documentNumber' => $salesOrder->order_number,
+            'documentDate' => $salesOrder->order_date,
+            'party' => $salesOrder->customer,
+            'partyLabel' => $salesOrder->order_type === 'b2b' ? 'Client' : 'Customer',
+            'warehouse' => $salesOrder->warehouse,
+        ])->setPaper('a4', 'portrait')
+            ->download(($salesOrder->order_number ?: 'sales-order') . '.pdf');
     }
 
     public function destroy(SalesOrder $salesOrder)

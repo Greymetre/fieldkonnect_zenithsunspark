@@ -205,43 +205,6 @@
               </div>
             </div>
             @endforeach
-            @else
-            {{-- Empty row when first time --}}
-            <div class="form-row label-row mb-3">
-              <div class="form-group col-md-3">
-                <label>Label Name</label>
-                <input type="text" class="form-control" name="labels[0][name]" placeholder="Enter Label Name">
-              </div>
-
-              <div class="form-group col-md-3">
-                <label>Page</label>
-                <select name="labels[0][page]" class="form-control select2">
-                  <option value="2">Page 2</option>
-                  <option value="3">Page 3</option>
-                  <option value="4">Page 4</option>
-                  <option value="5">Page 5</option>
-                </select>
-              </div>
-
-              <div class="form-group col-md-3">
-                <label>Page Heading</label>
-                <input type="text" name="labels[0][page_heading]" class="form-control" placeholder="Enter Page Heading">
-              </div>
-
-              <div class="form-group col-md-2">
-                <label>Label Icon</label>
-                <input type="file" class="form-control-file" name="labels[0][icon]" accept=".png,.jpg,.jpeg" onchange="previewLabelIcon(event, 0)">
-                <div class="mt-2">
-                  <img id="label_icon_preview_0" src="#" alt="Icon Preview" style="max-width: 60px; display:none;" class="img-thumbnail">
-                </div>
-              </div>
-
-              <div class="form-group col-md-1 d-flex align-items-end">
-                <button type="button" class="btn btn-danger btn-block" onclick="removeLabelRow(this)">
-                  <i class="fa fa-trash"></i>
-                </button>
-              </div>
-            </div>
             @endif
           </div>
 
@@ -260,7 +223,7 @@
   </section>
   <script src="{{ url('/').'/'.asset('assets/js/jquery.custom.js') }}"></script>
   <script>
-    let labelIndex = {{ $invoice_setting && $invoice_setting->labels-> count() ? $invoice_setting->labels-> count() : 1 }};
+    let labelIndex = {{ $invoice_setting && $invoice_setting->labels->count() ? $invoice_setting->labels->count() : 0 }};
 
     function previewImage(event, previewId) {
       const input = event.target;

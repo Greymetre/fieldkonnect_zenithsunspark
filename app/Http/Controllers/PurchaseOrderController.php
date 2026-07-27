@@ -7,6 +7,7 @@ use App\Http\Requests\PurchaseOrderRequest;
 use App\Models\Customers;
 use App\Models\FirmType;
 use App\Models\InventoryLedger;
+use App\Models\InvoiceSetting;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\WareHouse;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpFoundation\Response;
+use PDF;
 
 class PurchaseOrderController extends Controller
 {
@@ -70,6 +72,38 @@ class PurchaseOrderController extends Controller
             return view('procurement.partials.purchase_order_modal', compact('purchaseOrder'));
         }
         return view('procurement.purchase_order_show', compact('purchaseOrder'));
+    }
+
+    public function downloadPdf(PurchaseOrder $purchaseOrder)
+    {
+        abort_if(Gate::denies('purchase_order_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $purchaseOrder->load([
+            'supplier.customerdetails',
+            'supplier.customeraddress.cityname',
+            'supplier.customeraddress.districtname',
+            'supplier.customeraddress.statename',
+            'supplier.customeraddress.pincodename',
+            'items.product.unitmeasures',
+            'items.warehouse',
+        ]);
+        $settings = InvoiceSetting::with([
+            'address.cityname',
+            'address.districtname',
+            'address.statename',
+            'address.pincodename',
+        ])->first();
+
+        return PDF::loadView('orders.order_pdf', [
+            'order' => $purchaseOrder,
+            'settings' => $settings,
+            'documentTitle' => 'Purchase Order',
+            'documentNumber' => $purchaseOrder->po_number,
+            'documentDate' => $purchaseOrder->po_date,
+            'party' => $purchaseOrder->supplier,
+            'partyLabel' => 'Supplier',
+            'warehouse' => null,
+        ])->setPaper('a4', 'portrait')
+            ->download(($purchaseOrder->po_number ?: 'purchase-order') . '.pdf');
     }
 
     public function edit(PurchaseOrder $purchaseOrder)

@@ -3,7 +3,12 @@
   <div class="card-header card-header-icon card-header-theme">
     <div class="card-icon"><i class="material-icons">receipt_long</i></div>
     <h4 class="card-title">{{ $purchaseOrder->po_number }}
-      <span class="pull-right"><a href="{{ route('purchase-orders.index') }}" class="btn btn-theme">Back</a></span>
+      <span class="pull-right">
+        <a href="{{ route('purchase-orders.pdf', $purchaseOrder) }}" class="btn btn-danger" title="Download PDF">
+          <i class="material-icons">picture_as_pdf</i> PDF
+        </a>
+        <a href="{{ route('purchase-orders.index') }}" class="btn btn-theme">Back</a>
+      </span>
     </h4>
   </div>
   <div class="card-body">
