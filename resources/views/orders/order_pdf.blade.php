@@ -28,8 +28,10 @@
     .amount-words { margin-top: 8px; }
     .signature { margin-top: 10px; }
     .signature td { height: 105px; }
-    .signature-box { text-align: center; vertical-align: bottom !important; }
-    .signature-box img { display: block; max-width: 150px; max-height: 62px; margin: 2px auto 8px; }
+    .signature-box { text-align: center; vertical-align: top !important; padding-top: 18px !important; }
+    .signature-company { display: block; margin-bottom: 10px; }
+    .signature-box img { display: block; max-width: 150px; max-height: 62px; margin: 0 auto 8px; }
+    .signature-label { display: block; margin-top: 4px; }
     .bank-details { line-height: 1.55; }
     .bank-details img { width: 92px; height: 92px; float: left; margin: 0 10px 4px 0; }
     .bank-details .upi-label { display: inline-block; margin-top: 4px; padding: 2px 6px; background: #27c979; color: #fff; font-size: 8px; }
@@ -151,17 +153,16 @@
         Name: <strong>Hdfc Bank, Gidc,anklesvar</strong><br>
         Account No.: <strong>50200107439744</strong><br>
         IFSC code: <strong>HDFC0002677</strong><br>
-        Account Holder's Name: <strong>ZENITH Sunspark</strong><br>
-        <span class="upi-label">UPI | CLICK TO PAY</span>
+        Account Holder's Name: <strong>ZENITH Sunspark</strong>
       @else
         <strong>Notes:</strong><br>
         <span class="muted">{{ $order->notes ?: 'Thank you for doing business with us.' }}</span>
       @endif
     </td>
     <td class="signature-box">
-      <strong>For {{ optional($settings)->company_name ?: config('app.name') }}</strong>
+      <strong class="signature-company">For {{ optional($settings)->company_name ?: config('app.name') }}</strong>
       @if($signPath)<img src="{{ $signPath }}" alt="Authorized Signature">@endif
-      <div>Authorized Signatory</div>
+      <span class="signature-label">Authorized Signatory</span>
     </td>
   </tr>
 </table>
