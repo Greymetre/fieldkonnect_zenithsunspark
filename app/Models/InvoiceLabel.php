@@ -31,6 +31,6 @@ class InvoiceLabel extends Model implements HasMedia
      */
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('label_icon')->singleFile();
+        $this->addMediaCollection('label_icon')->useDisk('public')->singleFile();
     }
 }

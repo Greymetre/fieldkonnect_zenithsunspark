@@ -348,12 +348,23 @@ class TaxInvoiceController extends Controller
 
     public function invoice_setting_store(Request $request)
     {
+        $labels = collect($request->input('labels', []))
+            ->filter(function ($label, $index) use ($request) {
+                return !empty($label['id'])
+                    || filled($label['name'] ?? null)
+                    || filled($label['page_heading'] ?? null)
+                    || $request->hasFile("labels.$index.icon");
+            })
+            ->all();
+        $request->merge(['labels' => $labels]);
+
         $request->validate([
             'invoice_logo' => 'nullable|image|mimes:png,jpg,jpeg|max:9048',
             'invoice_esign' => 'nullable|image|mimes:png,jpg,jpeg|max:9048',
             'company_name' => 'required|string|max:255',
             'gst_number' => 'nullable|string|max:255',
             'pan_number' => 'nullable|string|max:255',
+            'labels' => 'nullable|array',
             'labels.*.name' => 'required|string|max:255',
             'labels.*.page' => 'required|in:2,3,4,5',
             'labels.*.icon' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
@@ -361,7 +372,7 @@ class TaxInvoiceController extends Controller
 
         $pages = [];
 
-        foreach ($request->labels as $labelData) {
+        foreach ($request->input('labels', []) as $labelData) {
             $page = $labelData['page'] ?? null;
             $heading = $labelData['page_heading'] ?? null;
 
@@ -401,14 +412,14 @@ class TaxInvoiceController extends Controller
         if ($request->hasFile('invoice_logo')) {
             $invoiceSetting->clearMediaCollection('invoice_logo');
             $invoiceSetting->addMedia($request->file('invoice_logo'))
-                ->toMediaCollection('invoice_logo');
+                ->toMediaCollection('invoice_logo', 'public');
         }
 
         // ✅ Upload invoice e-sign
         if ($request->hasFile('invoice_esign')) {
             $invoiceSetting->clearMediaCollection('invoice_esign');
             $invoiceSetting->addMedia($request->file('invoice_esign'))
-                ->toMediaCollection('invoice_esign');
+                ->toMediaCollection('invoice_esign', 'public');
         }
 
         // ✅ Handle labels
@@ -434,7 +445,7 @@ class TaxInvoiceController extends Controller
                 if ($request->hasFile("labels.$index.icon")) {
                     $label->clearMediaCollection('label_icon');
                     $label->addMedia($request->file("labels.$index.icon"))
-                        ->toMediaCollection('label_icon');
+                        ->toMediaCollection('label_icon', 'public');
                 }
             }
         }

@@ -43,7 +43,7 @@
           @endif
           <input type="hidden" name="id" id="customer_id" value="{!! $customers['id'] !!}">
           <div class="first-box">
-            <div class="row">
+            <!-- <div class="row">
               <div class="col-md-3 ml-auto mr-auto">
                 <div class="fileinput fileinput-new" data-provides="fileinput">
 
@@ -92,7 +92,7 @@
                   @endif
                 </div>
               </div>
-            </div>
+            </div> -->
             <div class="row">
               <div class="col-md-6">
                 <div class="input_section">
@@ -255,7 +255,7 @@
               </div>
 
 
-              <div class="col-md-6">
+              <!-- <div class="col-md-6">
                 <div class="input_section">
                   <label class="col-form-label">Working Status</label>
 
@@ -303,7 +303,7 @@
                   @endif
                 </div>
 
-              </div>
+              </div> -->
 
               <div class="col-md-6">
                 <div class="input_section">
@@ -931,7 +931,7 @@
 
                 </div>
               </div>
-              <div class="col-md-6">
+              <!-- <div class="col-md-6">
                 <div class="input_section">
                   <label class="col-form-label">Visit Status</label>
                   <div class="form-group has-default bmd-form-group">
@@ -972,11 +972,11 @@
 
 
                 </div>
-              </div>
+              </div> -->
 
             </div>
           </div>
-
+<!-- 
           <div class="row mt-5">
             <div class="col-md-2 col-sm-2">
               <div class="fileinput fileinput-new" data-provides="fileinput">
@@ -1097,9 +1097,9 @@
               </div>
             </div>
           </div>
-          <hr class="my-3">
+          <hr class="my-3"> -->
           <!-- <h4 class="section-heading mb-3  h4 mt-0 text-center text-info">Customer survey</h4>  -->
-          <div class="row last-inner-form">
+          <!-- <div class="row last-inner-form">
             <div class="col-md-12">
               <div id="accordion" role="tablist">
                 <div class="card-collapse">
@@ -1117,7 +1117,7 @@
 
                       @if($field['field_type'] == 'Radio')
                       <div class="row">
-                        <!-- <label class="col-sm-1 col-form-label label-checkbox"></label> -->
+                        <label class="col-sm-1 col-form-label label-checkbox"></label>
                         <div class="col-sm-12 checkbox-radios">
                           <h4 class="section-heading mb-3  h4 mt-0 text-center text-theme2"> {!! $field['label_name'] !!}</h4>
                           <div class="row">
@@ -1140,7 +1140,7 @@
                       </div>
                       @elseif($field['field_type'] == 'Checkbox')
                       <div class="row">
-                        <!-- <label class="col-sm-1 col-form-label label-checkbox"></label> -->
+                        <label class="col-sm-1 col-form-label label-checkbox"></label>
                         <div class="col-sm-12 checkbox-radios">
                           <h4 class="section-heading mb-3  h4 mt-0 text-center text-theme2"> {!! $field['label_name'] !!}</h4>
 
@@ -1180,7 +1180,7 @@
                       </div>
                       @else
                       <div class="row">
-                        <!-- <label class="col-sm-1 col-form-label label-checkbox"></label> -->
+                        <label class="col-sm-1 col-form-label label-checkbox"></label>
                         <div class="col-sm-12 checkbox-radios">
                           <h4 class="section-heading mb-3  h4 mt-0 text-center text-theme2"> {!! $field['label_name'] !!}</h4>
                           <div class="form-group has-default bmd-form-group">
@@ -1197,7 +1197,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </div> -->
           <div class="card-footer pull-right">
             {{ Form::submit('Submit', array('class' => 'btn btn-theme')) }}
           </div>

@@ -4,7 +4,7 @@
   $existingItems = old('items', $editing ? $purchaseOrder->items->map(fn($i) => [
     'product_id'=>$i->product_id,'warehouse_id'=>$i->warehouse_id,'quantity'=>$i->quantity,
     'rate'=>$i->rate,'gst_percent'=>$i->gst_percent
-  ])->values()->all() : []);
+  ])->values()->all() : (request()->filled('product_id') ? [['product_id'=>(int) request('product_id')]] : []));
   $productOptions = $products->map(function ($product) {
     $details = $product->productdetails->first();
 
@@ -157,6 +157,9 @@
 #items-table .select2-selection__rendered{line-height:42px!important}
 #items-table .select2-selection__arrow{height:42px!important}
 #items-table .line-total{font-weight:600;color:#27364a}
+.po-product-field{display:flex;gap:6px;align-items:flex-start}
+.po-product-field .select2-container{flex:1;min-width:0}
+.po-new-product{width:44px;height:44px;margin:0!important;flex:0 0 44px}
 .po-add-product{margin:8px 0 0!important;min-width:170px}
 .po-add-product .material-icons{font-size:18px;vertical-align:middle}
 .po-summary-section{margin-top:34px;align-items:end}
@@ -211,8 +214,13 @@ $(function(){
   }
   function addRow(item={}) {
     const i=rowIndex++;
+    const selectedProduct=products.find(product=>String(product.id)===String(item.product_id));
+    if(selectedProduct && item.rate == null){
+      item.rate=selectedProduct.rate;
+      item.gst_percent=selectedProduct.gst;
+    }
     const row = $(`<tr class="item-row">
-      <td><select name="items[${i}][product_id]" class="form-control product-select" required>${options(products,item.product_id,'Product')}</select></td>
+      <td><div class="po-product-field"><select name="items[${i}][product_id]" class="form-control product-select" required>${options(products,item.product_id,'Product')}</select>@can('product_create')<a href="{{ route('products.create', ['source'=>'purchase-order']) }}" class="btn btn-theme btn-just-icon po-new-product" title="Create Product"><i class="material-icons">add</i></a>@endcan</div></td>
       <td><select name="items[${i}][warehouse_id]" class="form-control warehouse-select" required>${options(warehouses,item.warehouse_id,'Warehouse')}</select></td>
       <td><input type="number" name="items[${i}][quantity]" class="form-control quantity" min="0.001" step="0.001" value="${item.quantity || 1}" required></td>
       <td><input type="number" name="items[${i}][rate]" class="form-control rate" min="0" step="0.01" value="${item.rate ?? 0}" required></td>

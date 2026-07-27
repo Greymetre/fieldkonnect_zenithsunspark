@@ -61,8 +61,18 @@ $(function(){
       .fail(xhr=>$('#sales-order-modal-content').html('<div class="alert alert-danger m-3">'+(xhr.responseJSON?.message||'Unable to load Sales Order.')+'</div>'));
   }
   $('.open-sales-order').on('click',function(){loadModal("{{ route('sales-orders.create') }}?type="+$(this).data('type'))});
-  @if(in_array(request('create_type'), ['b2b', 'b2c'], true) && request()->filled('customer_id'))
-  loadModal("{{ route('sales-orders.create') }}?type={{ request('create_type') }}&customer_id={{ (int) request('customer_id') }}");
+  @if(in_array(request('create_type'), ['b2b', 'b2c'], true) && (request()->filled('customer_id') || request()->filled('product_id')))
+  @php
+    $salesOrderCreateParameters = ['type' => request('create_type')];
+    if (request()->filled('customer_id')) {
+      $salesOrderCreateParameters['customer_id'] = (int) request('customer_id');
+    }
+    if (request()->filled('product_id')) {
+      $salesOrderCreateParameters['product_id'] = (int) request('product_id');
+    }
+    $salesOrderCreateUrl = route('sales-orders.create', $salesOrderCreateParameters);
+  @endphp
+  loadModal(@json($salesOrderCreateUrl));
   @endif
   $(document).on('click','.view-sales-order',function(){loadModal($(this).data('url'))});
   $(document).on('click','.receive-sales-payment',function(){loadModal($(this).data('url'))});

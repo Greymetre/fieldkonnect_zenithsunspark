@@ -32,8 +32,8 @@ class InvoiceSetting extends Model implements HasMedia
      */
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('invoice_logo')->singleFile();
-        $this->addMediaCollection('invoice_esign')->singleFile();
+        $this->addMediaCollection('invoice_logo')->useDisk('public')->singleFile();
+        $this->addMediaCollection('invoice_esign')->useDisk('public')->singleFile();
     }
 
     public function address()

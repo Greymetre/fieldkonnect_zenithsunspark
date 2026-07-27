@@ -329,7 +329,7 @@
         <header>
           <div class="logo">
             @if($settings && $settings->hasMedia('invoice_logo'))
-            <img src="data:image/png;base64,{{ base64_encode(file_get_contents($settings->getFirstMediaUrl('invoice_logo'))) }}" alt="Invoice Logo" style="max-height:80px;">
+            <img src="data:image/png;base64,{{ base64_encode(file_get_contents($settings->getFirstMediaPath('invoice_logo'))) }}" alt="Invoice Logo" style="max-height:80px;">
             @else
             <img src="{{ asset('assets/img/g_logo.png') }}" alt="Default Logo" style="max-height:80px;">
             @endif
@@ -635,7 +635,7 @@
                 @endif
                 @if($settings && $settings->hasMedia('invoice_esign'))
                 {{-- Dynamic E-Sign from media, converted to Base64 --}}
-                <img src="data:image/png;base64,{{ base64_encode(file_get_contents($settings->getFirstMediaUrl('invoice_esign'))) }}"
+                <img src="data:image/png;base64,{{ base64_encode(file_get_contents($settings->getFirstMediaPath('invoice_esign'))) }}"
                   alt="E-Sign" style="max-height:80px;">
                 @else
                 {{-- Default E-Sign from assets, converted to Base64 --}}
@@ -793,7 +793,7 @@
             @foreach($labels as $label)
             @php
             $value = optional($estimate->custom_pdf_values->firstWhere('label_id', $label->id))->value ?? '-';
-            $icon = $label->getFirstMediaUrl('label_icon');
+            $icon = $label->getFirstMediaPath('label_icon');
             @endphp
             <div class="col-6 col-md-4 col-lg-4 mb-3">
               <div class="label-tile">

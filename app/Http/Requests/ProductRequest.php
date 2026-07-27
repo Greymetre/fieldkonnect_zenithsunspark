@@ -22,7 +22,6 @@ class ProductRequest extends FormRequest
                 $rules = [
                     'product_name'  =>  'required|min:2|max:100|string|regex:/[a-zA-Z0-9\s]+/',
                     'display_name'  =>  'nullable|min:2|max:100|string|regex:/[a-zA-Z0-9\s]+/',
-                    'description'   =>  'required|min:2|max:450|string|regex:/[a-zA-Z0-9\s]+/',
                     'mrp'           =>  'nullable|numeric',
                     'price'         =>  'nullable|numeric',
                     'discount'      =>  'nullable|numeric',
@@ -42,7 +41,6 @@ class ProductRequest extends FormRequest
                 $rules = [
                     'product_name'  =>  'required|min:2|max:100|string|regex:/[a-zA-Z0-9\s]+/',
                     'display_name'  =>  'nullable|min:2|max:100|string|regex:/[a-zA-Z0-9\s]+/',
-                    'description'   =>  'required|min:2|max:450|string|regex:/[a-zA-Z0-9\s]+/',
                     'mrp'           =>  'nullable|numeric',
                     'price'         =>  'nullable|numeric',
                     'discount'      =>  'nullable|numeric',

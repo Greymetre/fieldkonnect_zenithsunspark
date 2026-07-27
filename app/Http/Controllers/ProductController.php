@@ -68,8 +68,7 @@ class ProductController extends Controller
         $subcategories = Subcategory::where('active','=','Y')->select('id', 'subcategory_name')->get();
         $brands = Brand::where('active','=','Y')->select('id', 'brand_name')->get();
         $units = UnitMeasure::where('active','=','Y')->select('id', 'unit_name')->get();
-        $branches = Branch::where('active','=','Y')->select('id', 'branch_name')->get();
-        return view('products.create',compact('categories','subcategories','brands','units', 'branches') )->with('products',$this->products);
+        return view('products.create',compact('categories','subcategories','brands','units'))->with('products',$this->products);
     }
 
     /**
@@ -170,6 +169,20 @@ class ProductController extends Controller
                         ProductDetails::insert($details->toArray());
                     }
                 }
+                if ($request->input('source') === 'purchase-order') {
+                    return redirect()->route('purchase-orders.create', ['product_id' => $product_id])
+                        ->with('message_success', 'Product Store Successfully');
+                }
+                if ($request->input('source') === 'sales-order') {
+                    $orderType = in_array($request->input('return_order_type'), ['b2b', 'b2c'], true)
+                        ? $request->input('return_order_type')
+                        : 'b2c';
+
+                    return redirect()->route('sales-orders.index', [
+                        'create_type' => $orderType,
+                        'product_id' => $product_id,
+                    ])->with('message_success', 'Product Store Successfully');
+                }
               return Redirect::to('products')->with('message_success', 'Product Store Successfully');
             }
             return redirect()->back()->with('message_danger', 'Error in Product Store')->withInput();  
@@ -209,8 +222,7 @@ class ProductController extends Controller
         $subcategories = Subcategory::where('active','=','Y')->select('id', 'subcategory_name')->get();
         $brands = Brand::where('active','=','Y')->select('id', 'brand_name')->get();
         $units = UnitMeasure::where('active','=','Y')->select('id', 'unit_name')->get();
-        $branches = Branch::where('active','=','Y')->select('id', 'branch_name')->get();
-        return view('products.create',compact('categories','subcategories','brands','units', 'branches') )->with('products',$products);
+        return view('products.create',compact('categories','subcategories','brands','units'))->with('products',$products);
     }
 
     /**
@@ -239,25 +251,15 @@ class ProductController extends Controller
             $product = Product::find($id);
             $product->product_name = !empty($request['product_name'])? $request['product_name'] :'';
             $product->product_code = !empty($request['product_code'])? $request['product_code'] :'';
-            $product->new_group = !empty($request['new_group'])? $request['new_group'] :'';
-            $product->sub_group = !empty($request['sub_group'])? $request['sub_group'] :'';
-            $product->expiry_interval = !empty($request['expiry_interval'])? $request['expiry_interval'] :'';
-            $product->expiry_interval_preiod = !empty($request['expiry_interval_preiod'])? $request['expiry_interval_preiod'] :0;
             //$product->display_name = !empty($request['display_name']) ? $request['display_name'] :'';
-            $product->description = !empty($request['description']) ? $request['description'] :'';
             $product->subcategory_id = !empty($request['subcategory_id']) ? $request['subcategory_id'] :null;
             $product->category_id = !empty($request['category_id']) ? $request['category_id'] :null;
             $product->brand_id = !empty($request['brand_id']) ? $request['brand_id'] :null;
             $product->unit_id = !empty($request['unit_id']) ? $request['unit_id'] :null;
             $product->specification = !empty($request['specification']) ? $request['specification'] :'';
-            $product->phase = !empty($request['phase']) ? $request['phase'] :'';
-            $product->sap_code = !empty($request['sap_code']) ? $request['sap_code'] :'';
-            $product->part_no = !empty($request['part_no']) ? $request['part_no'] :'';
-            $product->product_no = !empty($request['product_no']) ? $request['product_no'] :'';
             $product->model_no = !empty($request['model_no']) ? $request['model_no'] :'';
             $product->hsn_sac = !empty($request['hsn_sac']) ? $request['hsn_sac'] :'';
             $product->hsn_sac_no = !empty($request['hsn_sac_no']) ? $request['hsn_sac_no'] :'';
-            $product->suc_del  = !empty($request['suc_del']) ? $request['suc_del'] :'';
             if($request->file('image')){
                 $image = $request->file('image');
                 $filename = 'category'.$id;
@@ -318,12 +320,8 @@ class ProductController extends Controller
                                 // 'price'     => isset($rows['price']) ? $rows['price'] :0.00,
                                 'price'     => isset($rows['mrp']) ? $rows['mrp'] :0.00,
                                 'selling_price' => isset($rows['selling_price']) ? $rows['selling_price'] :0.00,
-                                'discount' => isset($request['discount']) ? $request['discount'] :0.00,
                                 'max_discount' => isset($request['max_discount']) ? $request['max_discount'] :0.00,
-                                'rmc' => isset($request['rmc']) ? $request['rmc'] :0.00,
                                 'gst'       => isset($request['gst']) ? $request['gst'] :0,
-                                'top_sku'          => !empty($request['top_sku']) ? $request['top_sku'] :null,
-                                'budget_for_month' => !empty($request['budget_for_month']) ? $request['budget_for_month'] :null,
                                 'hsn_code'      => isset($rows['hsn_code']) ? $rows['hsn_code'] :null,
                                 'ean_code'      => isset($rows['ean_code']) ? $rows['ean_code'] :null,
                                 'updated_at'    => getcurentDateTime(),
