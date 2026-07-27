@@ -15,6 +15,9 @@
     .company-logo img { max-width: 210px; max-height: 82px; }
     .company-name { margin: 0 0 5px; font-size: 18px; font-weight: bold; text-transform: uppercase; }
     .company-meta { line-height: 1.55; }
+    .company-address { margin-bottom: 4px; }
+    .company-detail-grid { width: 100%; border: 0; }
+    .company-detail-grid td { width: 50%; height: auto; padding: 0 4px 0 0; border: 0; line-height: 1.55; }
     .section-head { background: #f3f3f5; font-weight: bold; }
     .details td { width: 50%; line-height: 1.55; }
     .items { margin-top: 8px; }
@@ -64,10 +67,31 @@
       <div class="company-name">{{ optional($settings)->company_name ?: config('app.name') }}</div>
       <div class="company-meta">
         @if($companyAddress && $companyAddress->full_address)
-          {{ $companyAddress->full_address }}<br>
+          <div class="company-address">{{ $companyAddress->full_address }}</div>
         @endif
-        @if(optional($settings)->gst_number)<strong>GSTIN:</strong> {{ $settings->gst_number }}@endif
-        @if(optional($settings)->pan_number)&nbsp;&nbsp; <strong>PAN:</strong> {{ $settings->pan_number }}@endif
+        <table class="company-detail-grid">
+          <tr>
+            <td>
+              @if(optional($settings)->company_phone)
+                Phone: <strong>{{ $settings->company_phone }}</strong><br>
+              @endif
+              @if(optional($settings)->gst_number)
+                GSTIN: <strong>{{ $settings->gst_number }}</strong><br>
+              @endif
+              @if(optional($settings)->pan_number)
+                PAN: <strong>{{ $settings->pan_number }}</strong>
+              @endif
+            </td>
+            <td>
+              @if(optional($settings)->company_email)
+                Email: <strong>{{ $settings->company_email }}</strong><br>
+              @endif
+              @if($companyAddress && optional($companyAddress->statename)->state_name)
+                State: <strong>{{ optional($companyAddress->statename)->state_name }}</strong>
+              @endif
+            </td>
+          </tr>
+        </table>
       </div>
     </td>
   </tr>
