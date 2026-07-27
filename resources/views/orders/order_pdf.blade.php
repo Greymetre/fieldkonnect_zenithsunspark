@@ -52,6 +52,25 @@
   $bankQrPath = public_path('assets/img/qr_code.png');
   $partyGstin = optional(optional($party)->customerdetails)->gstin_no;
   $isPurchaseOrder = $order instanceof \App\Models\PurchaseOrder;
+  $companyAddressLines = $companyAddress && $companyAddress->address1
+      ? preg_split('/\r\n|\r|\n/', $companyAddress->address1)
+      : [];
+  $companyPhone = optional($settings)->company_phone;
+  $companyEmail = optional($settings)->company_email;
+  $companyStreetLines = [];
+  foreach ($companyAddressLines as $companyAddressLine) {
+      $companyAddressLine = trim($companyAddressLine);
+      if ($companyAddressLine === '') {
+          continue;
+      }
+      if (preg_match('/^phone\s*[-:]?\s*(.+)$/i', $companyAddressLine, $matches)) {
+          $companyPhone = trim($matches[1]);
+      } elseif (preg_match('/^email\s*[-:]?\s*(.+)$/i', $companyAddressLine, $matches)) {
+          $companyEmail = trim($matches[1]);
+      } else {
+          $companyStreetLines[] = $companyAddressLine;
+      }
+  }
 @endphp
 
 <h1>{{ $documentTitle }}</h1>
@@ -66,28 +85,34 @@
     <td>
       <div class="company-name">{{ optional($settings)->company_name ?: config('app.name') }}</div>
       <div class="company-meta">
-        @if($companyAddress && $companyAddress->full_address)
-          <div class="company-address">{{ $companyAddress->full_address }}</div>
+        @if(count($companyStreetLines))
+          <div class="company-address">{!! implode('<br>', array_map('e', $companyStreetLines)) !!}</div>
+        @endif
+        @if($companyPhone)
+          <div>Phone: <strong>{{ $companyPhone }}</strong></div>
         @endif
         <table class="company-detail-grid">
           <tr>
             <td>
-              @if(optional($settings)->company_phone)
-                Phone: <strong>{{ $settings->company_phone }}</strong><br>
-              @endif
-              @if(optional($settings)->gst_number)
-                GSTIN: <strong>{{ $settings->gst_number }}</strong><br>
-              @endif
-              @if(optional($settings)->pan_number)
-                PAN: <strong>{{ $settings->pan_number }}</strong>
+              @if($companyEmail)
+                Email: <strong>{{ $companyEmail }}</strong>
               @endif
             </td>
             <td>
-              @if(optional($settings)->company_email)
-                Email: <strong>{{ $settings->company_email }}</strong><br>
-              @endif
               @if($companyAddress && optional($companyAddress->statename)->state_name)
                 State: <strong>{{ optional($companyAddress->statename)->state_name }}</strong>
+              @endif
+            </td>
+          </tr>
+          <tr>
+            <td>
+              @if(optional($settings)->gst_number)
+                GSTIN: <strong>{{ $settings->gst_number }}</strong>
+              @endif
+            </td>
+            <td>
+              @if(optional($settings)->pan_number)
+                PAN: <strong>{{ $settings->pan_number }}</strong>
               @endif
             </td>
           </tr>
