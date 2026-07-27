@@ -138,9 +138,6 @@
     <td>
       <strong>No:</strong> {{ $documentNumber ?: '-' }}<br>
       <strong>Date:</strong> {{ optional($documentDate)->format('d-m-Y') ?: '-' }}<br>
-      <strong>Status:</strong> {{ ucwords(str_replace('_', ' ', $order->status)) }}<br>
-      @if($warehouse)<strong>Warehouse:</strong> {{ $warehouse->warehouse_name }}<br>@endif
-      @if(!$isPurchaseOrder)<strong>Order Type:</strong> {{ strtoupper($order->order_type) }}@endif
     </td>
   </tr>
 </table>
@@ -150,8 +147,6 @@
     <tr>
       <th style="width:4%">#</th>
       <th>Item Name</th>
-      <th style="width:13%">Product Code</th>
-      @if($isPurchaseOrder)<th style="width:14%">Warehouse</th>@endif
       <th style="width:9%" class="num">Quantity</th>
       <th style="width:8%" class="center">Unit</th>
       <th style="width:12%" class="num">Rate</th>
@@ -164,8 +159,6 @@
     <tr>
       <td>{{ $index + 1 }}</td>
       <td><strong>{{ optional($item->product)->product_name ?: '-' }}</strong></td>
-      <td>{{ optional($item->product)->product_code ?: '-' }}</td>
-      @if($isPurchaseOrder)<td>{{ optional($item->warehouse)->warehouse_name ?: '-' }}</td>@endif
       <td class="num">{{ rtrim(rtrim(number_format($item->quantity, 3, '.', ''), '0'), '.') }}</td>
       <td class="center">{{ optional(optional($item->product)->unitmeasures)->unit_name ?: '-' }}</td>
       <td class="num">Rs. {{ number_format($item->rate, 2) }}</td>
