@@ -50,13 +50,13 @@ class SubCategoryController extends Controller
             }
             if(!empty($request['id']))
             {
-                $status = Subcategory::where('id',$request['id'])->update($request->except(['_token','id','image']));
+                $status = Subcategory::where('id',$request['id'])->update($request->except(['_token','id','image','sap_code']));
             }
             else
             {
                 $request['active'] = 'Y';
                 $request['created_by'] = Auth::user()->id;
-                $status = Subcategory::create($request->except(['_token','image']));
+                $status = Subcategory::create($request->except(['_token','image','sap_code']));
             } 
             if($status)
             {

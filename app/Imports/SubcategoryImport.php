@@ -38,7 +38,6 @@ class SubcategoryImport implements ToCollection, WithValidation, WithHeadingRow,
                 ],
                 [
                     'active' => 'Y',
-                    'sap_code' => isset($row['sap_code']) ? $row['sap_code'] : NULL,
                     'service_category_id' => isset($row['service_category_id']) ? $row['service_category_id'] : NULL,
                     'updated_by' => Auth::user()->id,
                     'updated_at' => getcurentDateTime()

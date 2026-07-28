@@ -27,4 +27,15 @@ class SalesOrder extends Model
     public function payments() { return $this->hasMany(SalesOrderPayment::class); }
     public function latestPayment() { return $this->hasOne(SalesOrderPayment::class)->latestOfMany(); }
     public function dispatches() { return $this->hasMany(SalesOrderDispatch::class); }
+    public function returns()
+    {
+        return $this->hasMany(SalesOrderDispatch::class)
+            ->where('dispatch_number', 'like', 'RTR-%');
+    }
+    public function latestReturn()
+    {
+        return $this->hasOne(SalesOrderDispatch::class)
+            ->where('dispatch_number', 'like', 'RTR-%')
+            ->latestOfMany();
+    }
 }

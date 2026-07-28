@@ -26,6 +26,7 @@
             font-weight: bold;
         }
     </style>
+@include('partials.uppercase-output-style')
 </head>
 <body>
     <h1>Order Details</h1>

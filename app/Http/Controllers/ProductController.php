@@ -117,7 +117,6 @@ class ProductController extends Controller
                 'unit_id'       => !empty($request['unit_id']) ? $request['unit_id'] :null,
                 'created_by'    => Auth::user()->id,
                 'created_at'    => getcurentDateTime(),
-                'specification' => !empty($request['specification']) ? $request['specification'] :'',
                 'phase' => !empty($request['phase']) ? $request['phase'] :'',
                 'sap_code' => !empty($request['sap_code']) ? $request['sap_code'] :'',
                 'part_no'       => !empty($request['part_no']) ? $request['part_no'] :'',
@@ -256,7 +255,6 @@ class ProductController extends Controller
             $product->category_id = !empty($request['category_id']) ? $request['category_id'] :null;
             $product->brand_id = !empty($request['brand_id']) ? $request['brand_id'] :null;
             $product->unit_id = !empty($request['unit_id']) ? $request['unit_id'] :null;
-            $product->specification = !empty($request['specification']) ? $request['specification'] :'';
             $product->model_no = !empty($request['model_no']) ? $request['model_no'] :'';
             $product->hsn_sac = !empty($request['hsn_sac']) ? $request['hsn_sac'] :'';
             $product->hsn_sac_no = !empty($request['hsn_sac_no']) ? $request['hsn_sac_no'] :'';

@@ -77,7 +77,7 @@ $(function(){
       d.movement=movement;
     }},
     columns:[
-      {data:'movement_date',name:'il.created_at'},
+      {data:'movement_date',name:'il.id'},
       {data:'product_name',name:'p.product_name'},
       {data:'warehouse_name',name:'wh.warehouse_name'},
       {data:'movement_type',name:'movement_type',orderable:false,searchable:false},

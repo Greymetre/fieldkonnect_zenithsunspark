@@ -15,12 +15,12 @@ class SubcategoryTemplate implements FromCollection,WithHeadings,ShouldAutoSize
 {
     public function collection()
     {
-        return Subcategory::select('subcategory_name', 'sap_code','category_id')->limit(0)->get();   
+        return Subcategory::select('subcategory_name','category_id')->limit(0)->get();
     }
 
     public function headings(): array
     {
-        return ['subcategory_name', 'sap_code','category_id'];
+        return ['subcategory_name','category_id'];
     }
 
 }

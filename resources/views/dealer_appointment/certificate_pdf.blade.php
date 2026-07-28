@@ -13,6 +13,7 @@
             background-color: #FFF;
         }
     </style>
+@include('partials.uppercase-output-style')
 </head>
 
 <body>

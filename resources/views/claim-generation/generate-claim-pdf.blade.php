@@ -30,6 +30,7 @@
             background-color: #f9f9f9;
         }
     </style>
+@include('partials.uppercase-output-style')
 </head>
 
 <body>

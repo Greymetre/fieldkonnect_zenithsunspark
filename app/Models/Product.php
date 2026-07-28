@@ -11,7 +11,7 @@ class Product extends Model
 
     protected $table = 'products';
 
-    protected $fillable = ['active', 'ranking' ,'product_name','product_code','new_group','sub_group','expiry_interval','expiry_interval_preiod', 'display_name', 'description', 'subcategory_id', 'category_id', 'brand_id', 'product_image', 'unit_id', 'hsn_sac', 'hsn_sac_no', 'created_by', 'updated_by', 'deleted_at', 'created_at', 'updated_at', 'specification', 'part_no', 'product_no', 'model_no','phase','suc_del','sap_code' , 'branch_id'];
+    protected $fillable = ['active', 'ranking' ,'product_name','product_code','new_group','sub_group','expiry_interval','expiry_interval_preiod', 'display_name', 'description', 'subcategory_id', 'category_id', 'brand_id', 'product_image', 'unit_id', 'hsn_sac', 'hsn_sac_no', 'created_by', 'updated_by', 'deleted_at', 'created_at', 'updated_at', 'part_no', 'product_no', 'model_no','phase','suc_del','sap_code' , 'branch_id'];
     public function categories()
     {
         return $this->belongsTo('App\Models\Category', 'category_id', 'id')->select('id','category_name','category_image');

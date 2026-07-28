@@ -917,7 +917,7 @@
 
               <div class="col-md-6">
                 <div class="input_section">
-                  <label class=" col-form-label">{!! trans('panel.customers.fields.otherid_no') !!}</label>
+                  <label class=" col-form-label">MSME NUMBER</label>
 
                   <div class="form-group has-default bmd-form-group">
                     <input type="text" name="otherid_no" id="otherid_no" class="form-control" value="{!! old( 'otherid_no', isset($customers['customerdetails']['otherid_no']) ? $customers['customerdetails']['otherid_no'] :'' ) !!}" maxlength="200">

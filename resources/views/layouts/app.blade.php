@@ -742,6 +742,26 @@
    </style>
    </style>
    <!-- Scripts -->
+   <style>
+      body,
+      body input,
+      body textarea,
+      body select,
+      body button,
+      body option,
+      body .select2-container {
+         text-transform: uppercase;
+      }
+
+      body .material-icons,
+      body .material-icons-outlined,
+      body .material-symbols-outlined,
+      body .fa,
+      body [class^="fa-"],
+      body [class*=" fa-"] {
+         text-transform: none;
+      }
+   </style>
 </head>
 
 <body class="">

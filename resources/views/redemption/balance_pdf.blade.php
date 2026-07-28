@@ -33,6 +33,7 @@
             font-weight: bold;
         }
     </style>
+@include('partials.uppercase-output-style')
 </head>
 <body>
     <div class="container">

@@ -79,19 +79,6 @@
             <!-- New added coloumns for invoice -->
             <div class="col-md-6">
               <div class="input_section">
-                <label class="col-form-label">HP<span class="text-danger"> *</span></label>
-                <div class="form-group has-default bmd-form-group">
-                  <input type="text" name="specification" class="form-control" rows="4" maxlength="200" required value="{!! old( 'specification', $products['specification']) !!}">
-                  @if ($errors->has('specification'))
-                  <div class="error col-lg-12">
-                    <p class="text-danger">{{ $errors->first('specification') }}</p>
-                  </div>
-                  @endif
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="input_section">
                 <label class="col-form-label">Model</label>
                 <div class="form-group has-default bmd-form-group">
                   <input type="text" name="model_no" class="form-control" value="{!! old( 'model_no', $products['model_no']) !!}" maxlength="200">

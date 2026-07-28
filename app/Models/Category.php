@@ -11,7 +11,7 @@ class Category extends Model
 
     protected $table = 'categories';
 
-    protected $fillable = [ 'active','ranking' ,'category_name', 'category_image', 'sap_code','created_by', 'updated_by', 'deleted_at', 'created_at', 'updated_at'];
+    protected $fillable = [ 'active','ranking' ,'category_name', 'category_image', 'created_by', 'updated_by', 'deleted_at', 'created_at', 'updated_at'];
 
     public function message()
     {

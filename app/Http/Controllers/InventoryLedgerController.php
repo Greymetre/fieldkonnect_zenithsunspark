@@ -47,7 +47,9 @@ class InventoryLedgerController extends Controller
                     . ($change > 0 ? '+' : '') . $this->quantity($change) . '</strong>';
             })
             ->editColumn('balance_quantity', fn ($row) => '<strong>' . $this->quantity($row->balance_quantity) . '</strong>')
-            ->editColumn('person_name', fn ($row) => $row->person_name ?: 'System')
+            ->editColumn('person_name', fn ($row) => $row->transaction_type === 'sales_return'
+                ? 'Return Accepted'
+                : ($row->person_name ?: 'System'))
             ->addColumn('reference', fn ($row) => $this->reference($row))
             ->rawColumns(['movement_date', 'movement_type', 'change_quantity', 'balance_quantity'])
             ->make(true);
@@ -58,8 +60,6 @@ class InventoryLedgerController extends Controller
         abort_if(Gate::denies('product_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $rows = $this->ledgerQuery($request)
-            ->orderByDesc('il.created_at')
-            ->orderByDesc('il.id')
             ->get()
             ->map(function ($row) {
                 $row->reference = $this->reference($row);
@@ -124,7 +124,8 @@ class InventoryLedgerController extends Controller
             $query->where('il.quantity_out', '>', 0);
         }
 
-        return $query;
+        return $query
+            ->orderByDesc('il.id');
     }
 
     private function reference($row): string
@@ -133,7 +134,7 @@ class InventoryLedgerController extends Controller
             return $row->po_number;
         }
         if (!empty($row->order_number)) {
-            return $row->order_number;
+            return $row->order_number . ($row->transaction_type === 'sales_return' ? ' ↩' : '');
         }
 
         return $row->remark ?: 'Opening Balance';

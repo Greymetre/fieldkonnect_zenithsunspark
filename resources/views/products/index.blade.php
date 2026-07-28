@@ -110,7 +110,6 @@
                 <th>{!! trans('panel.product.fields.category_name') !!}</th>
                 <th>{!! trans('panel.product.fields.subcategory_name') !!}</th>
                 <th>{!! trans('panel.product.fields.product_name') !!}</th>
-                <th>HP</th>
                 <th>Product Stage</th>
                 <th>{!! trans('panel.product.fields.mrp') !!}</th>
                 <th>{!! trans('panel.product.fields.gst') !!}</th>
@@ -192,12 +191,6 @@
           {
             data: 'product_name',
             name: 'product_name',
-            orderable: false,
-            "defaultContent": ''
-          },
-          {
-            data: 'specification',
-            name: 'specification',
             orderable: false,
             "defaultContent": ''
           },

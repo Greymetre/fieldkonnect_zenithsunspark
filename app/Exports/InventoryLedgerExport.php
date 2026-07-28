@@ -42,7 +42,7 @@ class InventoryLedgerExport implements FromCollection, WithHeadings, WithMapping
             $before,
             $change,
             (float) $row->balance_quantity,
-            $row->person_name ?: 'System',
+            $row->transaction_type === 'sales_return' ? 'Return Accepted' : ($row->person_name ?: 'System'),
             $row->reference,
         ];
     }

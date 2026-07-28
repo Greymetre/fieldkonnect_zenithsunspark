@@ -76,6 +76,7 @@ $(function(){
   @endif
   $(document).on('click','.view-sales-order',function(){loadModal($(this).data('url'))});
   $(document).on('click','.receive-sales-payment',function(){loadModal($(this).data('url'))});
+  $(document).on('click','.open-sales-return,.accept-sales-return',function(){loadModal($(this).data('url'))});
   $(document).on('submit','#sales-order-form',function(e){
     e.preventDefault();const form=$(this),button=$('#create-sales-order-button').prop('disabled',true);
     $('#sales-order-errors').hide().empty();
@@ -126,6 +127,42 @@ $(function(){
       $.post("{{ url('sales-orders') }}/"+button.data('id')+"/confirm",{_token:"{{ csrf_token() }}"})
         .done(response=>appSwalSuccess(response.message).then(()=>{window.location=response.redirect_url}))
         .fail(xhr=>{button.prop('disabled',false);appSwalError(xhr.responseJSON?.message||'Unable to confirm sale.')});
+    });
+  });
+  $(document).on('submit','#sales-return-form',function(e){
+    e.preventDefault();
+    const form=$(this),button=$('#process-sales-return').prop('disabled',true);
+    $('#sales-return-errors').hide().empty();
+    $.post(form.attr('action'),form.serialize()).done(function(response){
+      $('#salesOrderModal').modal('hide');
+      table.ajax.reload(null,false);
+      appSwalSuccess(response.message);
+    }).fail(function(xhr){
+      button.prop('disabled',false);
+      const errors=xhr.responseJSON?.errors;
+      $('#sales-return-errors').html(errors?Object.values(errors).flat().join('<br>'):(xhr.responseJSON?.message||'Unable to submit return.')).show();
+    });
+  });
+  $(document).on('submit','#accept-sales-return-form',function(e){
+    e.preventDefault();
+    const form=$(this),button=$('#accept-sales-return').prop('disabled',true);
+    $('#accept-sales-return-errors').hide().empty();
+    appSwalConfirm({
+      title:'Accept Returned Stock?',
+      text:'This is final. Accepted quantities will be added to warehouse stock.',
+      confirmButtonText:'Yes, Accept Return',
+      confirmButtonClass:'btn btn-success'
+    }).then(function(confirmed){
+      if(!confirmed){button.prop('disabled',false);return;}
+      $.post(form.attr('action'),form.serialize()).done(function(response){
+        $('#salesOrderModal').modal('hide');
+        table.ajax.reload(null,false);
+        appSwalSuccess(response.message);
+      }).fail(function(xhr){
+        button.prop('disabled',false);
+        const errors=xhr.responseJSON?.errors;
+        $('#accept-sales-return-errors').html(errors?Object.values(errors).flat().join('<br>'):(xhr.responseJSON?.message||'Unable to accept return.')).show();
+      });
     });
   });
 });

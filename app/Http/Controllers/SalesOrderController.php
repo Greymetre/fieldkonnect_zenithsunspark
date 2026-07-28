@@ -28,7 +28,7 @@ class SalesOrderController extends Controller
         abort_if(Gate::denies('sales_order_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = SalesOrder::with(['customer', 'warehouse', 'items'])
+            $query = SalesOrder::with(['customer', 'warehouse', 'items', 'latestReturn'])
                 ->when($request->filled('search_text'), function ($query) use ($request) {
                     $search = $request->search_text;
                     $query->where(function ($q) use ($search) {
@@ -44,6 +44,9 @@ class SalesOrderController extends Controller
             return datatables()->eloquent($query)
                 ->addColumn('action', function ($row) {
                     $buttons = '';
+                    $return = $row->latestReturn;
+                    $returnData = $return ? $return->returnData() : [];
+                    $returnPending = $return && ($returnData['return_status'] ?? 'pending') === 'pending';
                     if ($row->status === 'payment_pending' && Gate::allows('sales_order_payment')) {
                         $buttons .= '<button type="button" class="btn btn-success btn-sm mr-1 receive-sales-payment" data-url="' . e(route('sales-orders.payment.modal', $row)) . '">Receive Payment</button>';
                     }
@@ -52,6 +55,10 @@ class SalesOrderController extends Controller
                     }
                     if (in_array($row->status, ['confirmed', 'partially_dispatched'], true)) {
                         $buttons .= '<a class="btn btn-warning btn-sm mr-1" href="' . e(route('dispatch.index')) . '">Dispatch</a>';
+                    }
+                    if ($returnPending && Gate::allows('sales_order_confirm')) {
+                        $buttons .= '<button type="button" class="btn btn-outline-success btn-sm mr-1 accept-sales-return" data-url="'
+                            . e(route('sales-orders.return.accept.modal', [$row, $return])) . '">Accept Return</button>';
                     }
                     if (Gate::allows('sales_order_show')) {
                         $buttons .= '<button type="button" class="btn btn-link text-primary view-sales-order" data-url="' . e(route('sales-orders.show', $row)) . '">View</button>';
@@ -67,6 +74,12 @@ class SalesOrderController extends Controller
                 ->editColumn('order_type', fn ($row) => '<span class="badge badge-info">' . strtoupper($row->order_type) . '</span>')
                 ->editColumn('grand_total', fn ($row) => '₹' . number_format($row->grand_total, 2))
                 ->addColumn('status_badge', function ($row) {
+                    if ($row->latestReturn) {
+                        $returnStatus = $row->latestReturn->returnData()['return_status'] ?? 'pending';
+                        return $returnStatus === 'accepted'
+                            ? '<span class="badge badge-success">Completed</span>'
+                            : '<span class="badge badge-danger">Return Requested</span>';
+                    }
                     $labels = [
                         'payment_pending' => ['warning', 'Payment Pending'],
                         'payment_partial' => ['info', 'Partial'],
@@ -155,8 +168,122 @@ class SalesOrderController extends Controller
     public function show(SalesOrder $salesOrder)
     {
         abort_if(Gate::denies('sales_order_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $salesOrder->load(['customer.customeraddress', 'customer.customerdetails', 'warehouse', 'items.product']);
+        $salesOrder->load(['customer.customeraddress', 'customer.customerdetails', 'warehouse', 'items.product', 'latestReturn.items']);
         return view('sales_orders.partials.show_modal', compact('salesOrder'));
+    }
+
+    public function returnModal(SalesOrder $salesOrder)
+    {
+        abort_if(Gate::denies('sales_order_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->assertReturnableOrder($salesOrder);
+        abort_if($salesOrder->returns()->exists(), Response::HTTP_UNPROCESSABLE_ENTITY, 'A return has already been submitted for this Sales Order.');
+
+        $salesOrder->load(['customer', 'warehouse', 'items.product']);
+        return view('sales_orders.partials.return_modal', compact('salesOrder'));
+    }
+
+    public function storeReturn(Request $request, SalesOrder $salesOrder)
+    {
+        abort_if(Gate::denies('sales_order_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $validated = $this->validateReturnItems($request, true);
+
+        $return = DB::transaction(function () use ($validated, $salesOrder) {
+            $order = SalesOrder::whereKey($salesOrder->id)->lockForUpdate()->firstOrFail();
+            $this->assertReturnableOrder($order);
+            abort_if((bool) $order->returns()->lockForUpdate()->first(), Response::HTTP_UNPROCESSABLE_ENTITY, 'A return has already been submitted for this Sales Order.');
+
+            $orderItems = $order->items()->lockForUpdate()->get()->keyBy('id');
+            $this->assertSubmittedReturnItems($validated['items'], $orderItems);
+            $returnRows = $this->returnItemRows($validated['items'], $orderItems, 'dispatched_quantity', $order->warehouse_id);
+
+            $return = SalesOrderDispatch::create([
+                'sales_order_id' => $order->id,
+                'dispatch_date' => now()->toDateString(),
+                'remark' => json_encode([
+                    'return_status' => 'pending',
+                    'reason' => $validated['reason'],
+                    'requested_by' => Auth::id(),
+                    'requested_at' => now()->toDateTimeString(),
+                ]),
+                'dispatched_by' => Auth::id(),
+            ]);
+            $return->update(['dispatch_number' => 'RTR-' . str_pad($return->id, 6, '0', STR_PAD_LEFT)]);
+            $return->items()->createMany($returnRows);
+            return $return;
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Return {$return->dispatch_number} submitted for acceptance.",
+        ]);
+    }
+
+    public function acceptReturnModal(SalesOrder $salesOrder, SalesOrderDispatch $return)
+    {
+        abort_if(Gate::denies('sales_order_confirm'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->assertOrderReturn($salesOrder, $return);
+        abort_if($return->isAcceptedReturn(), Response::HTTP_UNPROCESSABLE_ENTITY, 'This return has already been accepted.');
+
+        $salesOrder->load(['customer', 'warehouse']);
+        $return->load(['items.product']);
+        return view('sales_orders.partials.accept_return_modal', compact('salesOrder', 'return'));
+    }
+
+    public function acceptReturn(Request $request, SalesOrder $salesOrder, SalesOrderDispatch $return)
+    {
+        abort_if(Gate::denies('sales_order_confirm'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $validated = $this->validateReturnItems($request, false);
+
+        DB::transaction(function () use ($validated, $salesOrder, $return) {
+            $order = SalesOrder::whereKey($salesOrder->id)->lockForUpdate()->firstOrFail();
+            $lockedReturn = SalesOrderDispatch::whereKey($return->id)->lockForUpdate()->firstOrFail();
+            $this->assertReturnableOrder($order);
+            $this->assertOrderReturn($order, $lockedReturn);
+            abort_if($lockedReturn->isAcceptedReturn(), Response::HTTP_UNPROCESSABLE_ENTITY, 'This return has already been accepted.');
+
+            $requestedItems = $lockedReturn->items()->lockForUpdate()->get()->keyBy('id');
+            $this->assertSubmittedReturnItems($validated['items'], $requestedItems);
+            $acceptedRows = $this->returnItemRows($validated['items'], $requestedItems, 'quantity', $order->warehouse_id);
+
+            foreach ($acceptedRows as $row) {
+                $quantity = (float) $row['quantity'];
+                $stock = WarehouseStock::firstOrCreate(
+                    ['warehouse_id' => $order->warehouse_id, 'product_id' => $row['product_id']],
+                    ['quantity' => 0]
+                );
+                $stock = WarehouseStock::whereKey($stock->id)->lockForUpdate()->first();
+                $stock->quantity = round((float) $stock->quantity + $quantity, 3);
+                $stock->save();
+
+                InventoryLedger::create([
+                    'warehouse_id' => $order->warehouse_id,
+                    'product_id' => $row['product_id'],
+                    'transaction_type' => 'sales_return',
+                    'reference_type' => SalesOrder::class,
+                    'reference_id' => $order->id,
+                    'quantity_in' => $quantity,
+                    'quantity_out' => 0,
+                    'balance_quantity' => $stock->quantity,
+                    'remark' => 'Return accepted: ' . ($lockedReturn->returnData()['reason'] ?? ''),
+                    'created_by' => Auth::id(),
+                ]);
+            }
+
+            $returnData = $lockedReturn->returnData();
+            $returnData['return_status'] = 'accepted';
+            $returnData['accepted_by'] = Auth::id();
+            $returnData['accepted_at'] = now()->toDateTimeString();
+            $returnData['accepted_items'] = collect($acceptedRows)
+                ->mapWithKeys(fn ($row) => [(string) $row['sales_order_item_id'] => (float) $row['quantity']])
+                ->all();
+            $lockedReturn->update(['remark' => json_encode($returnData)]);
+            $order->update(['updated_by' => Auth::id()]);
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Return accepted. Stock and inventory ledger updated successfully.',
+        ]);
     }
 
     public function downloadPdf(SalesOrder $salesOrder)
@@ -177,6 +304,17 @@ class SalesOrderController extends Controller
             'address.statename',
             'address.pincodename',
         ])->first();
+
+        return view('orders.order_pdf', [
+            'order' => $salesOrder,
+            'settings' => $settings,
+            'documentTitle' => 'Sales Order',
+            'documentNumber' => $salesOrder->order_number,
+            'documentDate' => $salesOrder->order_date,
+            'party' => $salesOrder->customer,
+            'partyLabel' => $salesOrder->order_type === 'b2b' ? 'Client' : 'Customer',
+            'warehouse' => $salesOrder->warehouse,
+        ]);
 
         return PDF::loadView('orders.order_pdf', [
             'order' => $salesOrder,
@@ -415,5 +553,75 @@ class SalesOrderController extends Controller
         return Customers::where('active', 'Y')->whereHas('firmtypes', function ($query) {
             $query->whereRaw('LOWER(firmtype_name) = ?', ['customer']);
         });
+    }
+
+    private function assertReturnableOrder(SalesOrder $salesOrder): void
+    {
+        abort_unless(
+            $salesOrder->order_type === 'b2c' && $salesOrder->status === 'dispatched',
+            Response::HTTP_UNPROCESSABLE_ENTITY,
+            'Only fully dispatched B2C Sales Orders can be returned.'
+        );
+    }
+
+    private function assertOrderReturn(SalesOrder $salesOrder, SalesOrderDispatch $return): void
+    {
+        abort_unless(
+            (int) $return->sales_order_id === (int) $salesOrder->id
+                && str_starts_with((string) $return->dispatch_number, 'RTR-'),
+            Response::HTTP_NOT_FOUND,
+            'Return not found for this Sales Order.'
+        );
+    }
+
+    private function validateReturnItems(Request $request, bool $reasonRequired): array
+    {
+        $validated = $request->validate([
+            'reason' => ($reasonRequired ? 'required' : 'nullable') . '|string|max:2000',
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|integer|distinct',
+            'items.*.quantity' => 'required|numeric|min:0',
+        ]);
+        if (collect($validated['items'])->sum(fn ($item) => (float) $item['quantity']) <= 0) {
+            throw ValidationException::withMessages(['items' => 'Enter a return quantity for at least one product.']);
+        }
+        return $validated;
+    }
+
+    private function assertSubmittedReturnItems(array $submitted, $availableItems): void
+    {
+        $submittedIds = collect($submitted)->pluck('id')->map(fn ($id) => (int) $id)->sort()->values();
+        $availableIds = $availableItems->keys()->map(fn ($id) => (int) $id)->sort()->values();
+        if ($submittedIds->all() !== $availableIds->all()) {
+            throw ValidationException::withMessages(['items' => 'Submit every return item.']);
+        }
+    }
+
+    private function returnItemRows(array $submitted, $availableItems, string $maximumField, int $warehouseId): array
+    {
+        $rows = [];
+        foreach ($submitted as $index => $row) {
+            $item = $availableItems->get((int) $row['id']);
+            abort_unless($item, Response::HTTP_UNPROCESSABLE_ENTITY, 'Invalid return item.');
+            $quantity = round((float) $row['quantity'], 3);
+            $maximum = round((float) $item->{$maximumField}, 3);
+            if ($quantity > $maximum) {
+                $name = optional($item->product)->product_name ?: 'Product';
+                throw ValidationException::withMessages([
+                    "items.{$index}.quantity" => "{$name}: return quantity cannot exceed {$maximum}.",
+                ]);
+            }
+            if ($quantity <= 0) {
+                continue;
+            }
+            $salesOrderItemId = $maximumField === 'quantity' ? $item->sales_order_item_id : $item->id;
+            $rows[] = [
+                'sales_order_item_id' => $salesOrderItemId,
+                'product_id' => $item->product_id,
+                'warehouse_id' => $warehouseId,
+                'quantity' => $quantity,
+            ];
+        }
+        return $rows;
     }
 }

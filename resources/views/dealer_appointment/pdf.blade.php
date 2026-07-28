@@ -62,6 +62,7 @@
       object-fit: cover;
     }
   </style>
+@include('partials.uppercase-output-style')
 </head>
 
 <body>

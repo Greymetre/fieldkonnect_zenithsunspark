@@ -114,19 +114,6 @@
                   </div>
                 </div>           
             </div>
-            <div class="col-md-6">
-                <div class="input_section">
-                  <label class="col-form-label">SAP Code<span class="text-danger"> *</span></label>
-                  <div class="form-group has-default bmd-form-group">
-                    <input type="text" name="sap_code" id="sap_code" class="form-control" value="{!! old( 'sap_code') !!}" maxlength="200" >
-                    @if ($errors->has('sap_code'))
-                    <div class="error">
-                      <p class="text-danger">{{ $errors->first('sap_code') }}</p>
-                    </div>
-                    @endif
-                  </div>
-                </div>
-              </div>
           <div class="col-md-6">
               <div class="input_section">
                 <label class="col-form-label">{!! trans('panel.subcategory.fields.category') !!}<span class="text-danger"> *</span></label>
@@ -213,8 +200,7 @@
        success:function(data)
        {
         $('#subcategory_name').val(data.subcategory_name);
-        $('#sap_code').val(data.sap_code);
-        $("#category_id").append('<option value="'+data.category_id+'" selected="selected">'+data.category_name+'</option>');
+        $('#category_id').val(data.category_id).trigger('change');
         if(data.subcategory_image)
         {
           var image = data.subcategory_image ;
@@ -273,8 +259,22 @@
     $('.create').click(function () {
         $('#subcategory_id').val('');
         $('#createsubcategoryForm').trigger("reset");
+        $('#category_id').val('').trigger('change');
         $("#subcategory_image").attr({ "src": "{!! asset('assets/img/placeholder.jpg') !!}" });
         $('.modal-title').text('{!! trans('panel.global.add') !!}');
+    });
+
+    $('#createsubcategory').on('shown.bs.modal', function () {
+        var $category = $('#category_id');
+
+        if ($category.hasClass('select2-hidden-accessible')) {
+            $category.select2('destroy');
+        }
+
+        $category.select2({
+            dropdownParent: $('#createsubcategory'),
+            width: '100%'
+        });
     });
     
     $('body').on('click', '.delete', function () {

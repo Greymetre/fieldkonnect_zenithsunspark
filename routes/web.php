@@ -340,6 +340,10 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('sales-orders/{sales_order}/payment', [SalesOrderController::class, 'paymentModal'])->name('sales-orders.payment.modal');
     Route::post('sales-orders/{sales_order}/payment', [SalesOrderController::class, 'storePayment'])->name('sales-orders.payment.store');
     Route::post('sales-orders/{sales_order}/confirm', [SalesOrderController::class, 'confirm'])->name('sales-orders.confirm');
+    Route::get('sales-orders/{sales_order}/return', [SalesOrderController::class, 'returnModal'])->name('sales-orders.return.modal');
+    Route::post('sales-orders/{sales_order}/return', [SalesOrderController::class, 'storeReturn'])->name('sales-orders.return.store');
+    Route::get('sales-orders/{sales_order}/returns/{return}/accept', [SalesOrderController::class, 'acceptReturnModal'])->name('sales-orders.return.accept.modal');
+    Route::post('sales-orders/{sales_order}/returns/{return}/accept', [SalesOrderController::class, 'acceptReturn'])->name('sales-orders.return.accept');
     Route::get('dispatch', [SalesOrderController::class, 'dispatchIndex'])->name('dispatch.index');
     Route::get('dispatch/{sales_order}', [SalesOrderController::class, 'dispatchModal'])->name('dispatch.modal');
     Route::post('dispatch/{sales_order}', [SalesOrderController::class, 'storeDispatch'])->name('dispatch.store');

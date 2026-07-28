@@ -14,6 +14,25 @@
       <link href="{{ url('/').'/'.asset('assets/css/custom1.css') }}" rel="stylesheet" />
         <!-- CSS Just for demo purpose, don't include it in your project -->
       <link href="{{ url('/').'/'.asset('assets/demo/demo.css') }}" rel="stylesheet" />
+        <style>
+            body,
+            body input,
+            body textarea,
+            body select,
+            body button,
+            body option {
+                text-transform: uppercase;
+            }
+
+            body .material-icons,
+            body .material-icons-outlined,
+            body .material-symbols-outlined,
+            body .fa,
+            body [class^="fa-"],
+            body [class*=" fa-"] {
+                text-transform: none;
+            }
+        </style>
     </head>
     <body style="background-color: #f2fbff;">
         <div class="font-sans text-gray-900 antialiased">

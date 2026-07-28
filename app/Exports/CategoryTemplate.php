@@ -15,12 +15,12 @@ class CategoryTemplate implements FromCollection,WithHeadings,ShouldAutoSize
 {
     public function collection()
     {
-        return Category::select('category_name', 'sap_code')->limit(0)->get();   
+        return Category::select('category_name')->limit(0)->get();
     }
 
     public function headings(): array
     {
-        return ['category_name', 'sap_code'];
+        return ['category_name'];
     }
 
 }

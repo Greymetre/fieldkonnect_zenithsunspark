@@ -11,7 +11,7 @@ class Subcategory extends Model
 
     protected $table = 'subcategories';
 
-    protected $fillable = [ 'active', 'ranking' ,'subcategory_name', 'subcategory_image', 'sap_code','category_id', 'service_category_id', 'created_by', 'updated_by', 'deleted_at', 'created_at', 'updated_at' ];
+    protected $fillable = [ 'active', 'ranking' ,'subcategory_name', 'subcategory_image', 'category_id', 'service_category_id', 'created_by', 'updated_by', 'deleted_at', 'created_at', 'updated_at' ];
 
 
     public function createdbyname()

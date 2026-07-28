@@ -103,7 +103,6 @@
                 <th>Product Stage</th>
                 <th>kW</th>
                 <th>Description</th>
-                <th>HP</th>
                 <th>{!! trans('panel.product.fields.brand_name') !!}</th>
                 <th>{!! trans('panel.product.fields.mrp') !!}</th>
                 <th>{!! trans('panel.product.fields.category_name') !!}</th>
@@ -186,11 +185,6 @@
           {
             data: 'description',
             name: 'description',
-            "defaultContent": ''
-          },
-          {
-            data: 'specification',
-            name: 'specification',
             "defaultContent": ''
           },
           {

@@ -51,6 +51,7 @@
             margin-top: 5px;
         }
     </style>
+@include('partials.uppercase-output-style')
 </head>
 
 <body>

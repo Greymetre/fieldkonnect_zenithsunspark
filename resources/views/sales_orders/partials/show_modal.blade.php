@@ -16,6 +16,11 @@
   #salesOrderModal .modal-footer{padding:16px 25px;border-top:1px solid #e1e7ef}
 </style>
 <div class="modal-header">
+  @php
+    $returnRecord = $salesOrder->latestReturn;
+    $returnData = $returnRecord ? $returnRecord->returnData() : [];
+    $returnStatus = $returnRecord ? ($returnData['return_status'] ?? 'pending') : null;
+  @endphp
   <div>
     <small style="color:#728096">{{ strtoupper($salesOrder->order_type) }} SALES ORDER</small>
     <h4 class="modal-title"><strong>{{ $salesOrder->order_number }}</strong></h4>
@@ -40,7 +45,7 @@
       <small>Warehouse</small>
       <strong>{{ $salesOrder->warehouse->warehouse_name }}</strong>
       <small class="mt-2">Status</small>
-      <strong>{{ ucwords(str_replace('_', ' ', $salesOrder->status)) }}</strong>
+      <strong>{{ $returnStatus === 'accepted' ? 'Completed' : ($returnStatus === 'pending' ? 'Return Requested' : ucwords(str_replace('_', ' ', $salesOrder->status))) }}</strong>
     </div></div>
     <div class="col-md-2"><div class="so-summary-card">
       <small>Order Type</small>
@@ -61,8 +66,27 @@
   @if($salesOrder->notes)
     <div class="so-summary-card mt-3"><small>Notes</small><p>{{ $salesOrder->notes }}</p></div>
   @endif
+  @if($returnRecord)
+    <div class="so-summary-card mt-3">
+      <small>Return {{ $returnRecord->dispatch_number }}</small>
+      <p><strong>Reason:</strong> {{ $returnData['reason'] ?? '-' }}</p>
+      <p><strong>Status:</strong> {{ $returnStatus === 'accepted' ? 'Completed' : 'Awaiting Acceptance' }}</p>
+    </div>
+  @endif
 </div>
 <div class="modal-footer">
+  @if($salesOrder->order_type === 'b2c' && $salesOrder->status === 'dispatched' && !$returnRecord && auth()->user()->can('sales_order_create'))
+    <button type="button" class="btn btn-outline-danger open-sales-return"
+      data-url="{{ route('sales-orders.return.modal', $salesOrder) }}">
+      <i class="material-icons">keyboard_return</i> Return / Reverse Order
+    </button>
+  @endif
+  @if($returnStatus === 'pending' && auth()->user()->can('sales_order_confirm'))
+    <button type="button" class="btn btn-success accept-sales-return"
+      data-url="{{ route('sales-orders.return.accept.modal', [$salesOrder, $returnRecord]) }}">
+      Accept Return
+    </button>
+  @endif
   <a href="{{ route('sales-orders.pdf', $salesOrder) }}" class="btn btn-danger" title="Download PDF">
     <i class="material-icons">picture_as_pdf</i> Download PDF
   </a>

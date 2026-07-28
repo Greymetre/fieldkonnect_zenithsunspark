@@ -19,6 +19,40 @@
 <div class="modal fade" id="paymentLedgerModal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document"><div class="modal-content card" id="payment-ledger-modal-content"></div></div>
 </div>
+<style>
+  #paymentLedgerModal .modal-content{
+    background:#fff!important;
+    color:#2f3948!important;
+  }
+  #paymentLedgerModal .modal-header{
+    background:#f7f9fc!important;
+    border-bottom:1px solid #e1e7ef;
+  }
+  #paymentLedgerModal .modal-title,
+  #paymentLedgerModal .modal-title strong,
+  #paymentLedgerModal .modal-body,
+  #paymentLedgerModal .modal-body p,
+  #paymentLedgerModal .modal-body strong,
+  #paymentLedgerModal .modal-body table th,
+  #paymentLedgerModal .modal-body table td,
+  #paymentLedgerModal .modal-body .row,
+  #paymentLedgerModal .modal-footer{
+    color:#2f3948!important;
+  }
+  #paymentLedgerModal .modal-body table th{
+    background:#f7f9fc!important;
+    color:#344154!important;
+  }
+  #paymentLedgerModal .close,
+  #paymentLedgerModal .close .material-icons{
+    color:#65748a!important;
+    opacity:1;
+  }
+  #paymentLedgerModal .btn-success,
+  #paymentLedgerModal .btn-success strong{
+    color:#fff!important;
+  }
+</style>
 <script>
 $(function(){
   const table=$('#payment-ledger-table').DataTable({

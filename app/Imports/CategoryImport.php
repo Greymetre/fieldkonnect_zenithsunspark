@@ -32,7 +32,6 @@ class CategoryImport implements ToModel,WithValidation,WithHeadingRow, WithBatch
             
             'active' => 'Y',
             'category_name' => isset($row['category_name'])? ucfirst($row['category_name']):'',
-            'sap_code' => isset($row['sap_code'])? $row['sap_code']:'',
             'created_at' => getcurentDateTime() ,
             'updated_at' => getcurentDateTime()
         ]);

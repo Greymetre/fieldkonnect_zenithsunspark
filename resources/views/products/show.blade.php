@@ -12,7 +12,6 @@
                 <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">GG No:</strong> &nbsp; {!! $products['product_no'] !!} </li> 
                 <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">OE Part No:</strong> &nbsp; {!! isset($products['part_no']) ? $products['part_no'] : '' !!}</li>
                 <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">{!! trans('panel.product.fields.description') !!}:</strong> &nbsp; {!! isset($products['description']) ? $products['description'] : '' !!}</li>
-                <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">Specification:</strong> &nbsp; {!! $products['specification'] !!} </li> 
                 <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">phase:</strong> &nbsp; {!! $products['phase'] !!} </li> 
                 <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">Segment:</strong> &nbsp; {!! isset($products['brands']['brand_name']) ? $products['brands']['brand_name'] : '' !!}</li>
                 <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">Model:</strong> &nbsp; {!! isset($products['model_no']) ? $products['model_no'] : '' !!}</li>

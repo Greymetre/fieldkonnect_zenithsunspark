@@ -18,6 +18,7 @@
             margin-top: 20px;
         }
     </style>
+@include('partials.uppercase-output-style')
 </head>
 
 <body>
