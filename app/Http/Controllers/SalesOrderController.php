@@ -305,16 +305,16 @@ class SalesOrderController extends Controller
             'address.pincodename',
         ])->first();
 
-        // return view('orders.order_pdf', [
-        //     'order' => $salesOrder,
-        //     'settings' => $settings,
-        //     'documentTitle' => 'Sales Order',
-        //     'documentNumber' => $salesOrder->order_number,
-        //     'documentDate' => $salesOrder->order_date,
-        //     'party' => $salesOrder->customer,
-        //     'partyLabel' => $salesOrder->order_type === 'b2b' ? 'Client' : 'Customer',
-        //     'warehouse' => $salesOrder->warehouse,
-        // ]);
+        return view('orders.order_pdf', [
+            'order' => $salesOrder,
+            'settings' => $settings,
+            'documentTitle' => 'Sales Order',
+            'documentNumber' => $salesOrder->order_number,
+            'documentDate' => $salesOrder->order_date,
+            'party' => $salesOrder->customer,
+            'partyLabel' => $salesOrder->order_type === 'b2b' ? 'Client' : 'Customer',
+            'warehouse' => $salesOrder->warehouse,
+        ]);
 
         return PDF::loadView('orders.order_pdf', [
             'order' => $salesOrder,
