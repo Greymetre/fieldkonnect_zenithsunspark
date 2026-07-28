@@ -10,9 +10,9 @@
     h1 { margin: 0 0 14px; text-align: center; font-size: 20px; }
     table { width: 100%; border-collapse: collapse; }
     .bordered td, .bordered th { border: 1px solid #55586b; padding: 6px; vertical-align: top; }
-    .company-table td { height: 98px; padding: 0; border: 0; }
+    .company-table td { height: 98px; padding: 0; }
     .company-logo { width: 34%; text-align: center; vertical-align: middle !important; }
-    .company-logo img { max-width: 210px; max-height: 98px; }
+    .company-logo img { max-width: 210px; max-height: 100px; }
     .company-name { margin: 0 0 5px; font-size: 18px; font-weight: bold; text-transform: uppercase; }
     .company-meta { line-height: 1.55; }
     .company-address { margin-bottom: 4px; }
