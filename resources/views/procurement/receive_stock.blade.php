@@ -5,7 +5,7 @@
     <h4 class="card-title">Receive Stock (GRN)</h4>
   </div>
   <div class="card-body">
-    <p class="text-muted">Approved Purchase Orders pending for stock receipt.</p>
+    <!-- <p class="text-muted">Approved Purchase Orders pending for stock receipt.</p> -->
     <div class="row mb-3">
       <div class="col-md-4"><label>Search</label><input id="receive_search" class="form-control" placeholder="PO number or supplier"></div>
       <div class="col-md-4"><label>From Date</label><input type="date" id="receive_from" class="form-control"></div>

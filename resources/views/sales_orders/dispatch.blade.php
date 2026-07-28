@@ -6,7 +6,7 @@
   </div>
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-end flex-wrap mb-3">
-      <p class="text-muted mb-0">Confirmed orders ready for dispatch — warehouse stock remains unchanged until dispatch.</p>
+      <!-- <p class="text-muted mb-0">Confirmed orders ready for dispatch — warehouse stock remains unchanged until dispatch.</p> -->
       <div class="d-flex">
         <input id="dispatch_search" class="form-control mr-2" placeholder="Order no. or customer">
         <input type="date" id="dispatch_from" class="form-control mr-2">

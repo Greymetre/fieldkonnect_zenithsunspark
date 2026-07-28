@@ -15,7 +15,7 @@
         </h4>
       </div>
       <div class="card-body">
-        <p class="text-muted">Create supplier order → Approve → Receive Stock (GRN)</p>
+        <!-- <p class="text-muted">Create supplier order → Approve → Receive Stock (GRN)</p> -->
         <!-- <div class="alert alert-info">
           <i class="material-icons align-middle">info</i>
           Select supplier, products, quantity, GST and warehouse. Approval makes the PO available for receiving.

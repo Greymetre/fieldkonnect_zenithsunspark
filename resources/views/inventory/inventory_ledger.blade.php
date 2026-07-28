@@ -7,7 +7,7 @@
   <div class="card-body">
     <div class="ledger-heading mb-4">
       <h4 class="mb-1">Inventory Ledger</h4>
-      <p class="text-muted mb-0">Day-to-day stock IN / OUT — who, when, quantity, before and after stock</p>
+      <!-- <p class="text-muted mb-0">Day-to-day stock IN / OUT — who, when, quantity, before and after stock</p> -->
     </div>
 
     <div class="ledger-toolbar mb-4">

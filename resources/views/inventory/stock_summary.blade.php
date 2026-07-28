@@ -8,7 +8,7 @@
     <div class="row align-items-end stock-summary-toolbar">
       <div class="col-lg-6 col-md-12 mb-3">
         <h4 class="mb-1">Warehouse-wise Stock</h4>
-        <p class="text-muted mb-0">Live stock position for all products across every warehouse</p>
+        <!-- <p class="text-muted mb-0">Live stock position for all products across every warehouse</p> -->
       </div>
       <div class="col-lg-3 col-md-6 mb-3">
         <div class="input_section mb-0">

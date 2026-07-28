@@ -7,7 +7,7 @@
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-start flex-wrap">
       <div>
-        <p class="text-muted">B2B &amp; B2C — Order → Payment → Confirm → Dispatch</p>
+        <!-- <p class="text-muted">B2B &amp; B2C — Order → Payment → Confirm → Dispatch</p> -->
         @can('sales_order_create')
           <button class="btn btn-warning open-sales-order" data-type="b2c">+ B2C Order</button>
           <button class="btn btn-theme open-sales-order" data-type="b2b">+ B2B Order</button>
