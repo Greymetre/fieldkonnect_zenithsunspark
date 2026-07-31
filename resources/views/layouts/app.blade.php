@@ -2585,15 +2585,14 @@
          @endif
          </ul>
    </div>
-   <!--   <div class="bottom-content">
-                  <li class="">
-                    <a href="#">
-                      <i class='bx bx-log-out'></i>
-                      <span class="text nav-text">Logout</span>
-                    </a>
-                  </li>
-                  
-                  </div> -->
+   <div class="bottom-content">
+      <li class="nav-link">
+         <a class="no-after" href="{{ url('logout') }}" title="Logout">
+            <i class="material-icons icon">logout</i>
+            <span class="text nav-text">Logout</span>
+         </a>
+      </li>
+   </div>
    </div>
    </nav>
    <div class="main-panel">
