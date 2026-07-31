@@ -436,6 +436,14 @@ if (! function_exists('getUsersReportingToAuth')) {
             $query->whereIn('id', config('constants.customer_roles'));
         })->where('active', 'Y')->get();
 
+        // Back-office users are restricted by their assigned module permissions,
+        // but data inside those modules must not be restricted by reporting hierarchy.
+        $hasGlobalReportingAccess = $userinfo->hasAnyRole([
+            'BACKOFFICE1',
+            'BACKOFFICE2',
+            'BACKOFFICE3',
+        ]);
+
         // if(!$userinfo->hasRole('superadmin') && !$userinfo->hasRole('Admin'))
         // {
         //     $all_ids_array = array($userid);
@@ -448,7 +456,7 @@ if (! function_exists('getUsersReportingToAuth')) {
         //     $all_ids_array = User::pluck('id')->toArray();
         // }
 
-        if (!$userinfo->hasRole('superadmin') && !$userinfo->hasRole('Admin') && !$userinfo->hasRole('CRM') && !$userinfo->hasRole('HR_Admin') && !$userinfo->hasRole('HO_Account')  && !$userinfo->hasRole('Sub_Support') && !$userinfo->hasRole('Accounts Order') && !$userinfo->hasRole('Service Admin') && !$userinfo->hasRole('All Customers') && !$userinfo->hasRole('Sub billing') && !$userinfo->hasRole('Sales Admin') && !$userinfo->hasRole('Marketing_Admin') && !$userinfo->hasRole('MIS_ADMIN') && !$userinfo->hasRole('Marketing Team') && !$userinfo->hasRole('Data_Crm')) {
+        if (!$hasGlobalReportingAccess && !$userinfo->hasRole('superadmin') && !$userinfo->hasRole('Admin') && !$userinfo->hasRole('CRM') && !$userinfo->hasRole('HR_Admin') && !$userinfo->hasRole('HO_Account')  && !$userinfo->hasRole('Sub_Support') && !$userinfo->hasRole('Accounts Order') && !$userinfo->hasRole('Service Admin') && !$userinfo->hasRole('All Customers') && !$userinfo->hasRole('Sub billing') && !$userinfo->hasRole('Sales Admin') && !$userinfo->hasRole('Marketing_Admin') && !$userinfo->hasRole('MIS_ADMIN') && !$userinfo->hasRole('Marketing Team') && !$userinfo->hasRole('Data_Crm')) {
             $all_ids_array = array($userid);
             $test = getAllChild(array($userid), $all_users);
             while (count($test) > 0) {

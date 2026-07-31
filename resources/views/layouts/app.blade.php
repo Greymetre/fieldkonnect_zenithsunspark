@@ -1196,13 +1196,13 @@
                            </li>
                            @endif
                            @if(auth()->user()->can('opening_stock_view'))
-                           <li class="nav-link-btn {{ request()->is('opening-stocks*') ? 'active' : '' }}">
+                           <!-- <li class="nav-link-btn {{ request()->is('opening-stocks*') ? 'active' : '' }}">
                               <a class="hoveradd2" href="{{ url('opening-stocks') }}">
                                  <i class="material-icons icon">donut_small</i>
                                  <span>Opening Stock</span>
                                  <div class="d-none mobile_hide"> Opening Stock</div>
                               </a>
-                           </li>
+                           </li> -->
                            @endif
                            @if(auth()->user()->can('branch_opening_qty_view'))
                            <li class="nav-link-btn {{ request()->is('opening-quantity*') ? 'active' : '' }}">
