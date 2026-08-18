@@ -6,7 +6,7 @@
   </div>
   <div class="card-body">
     <div class="row align-items-end stock-summary-toolbar">
-      <div class="col-lg-6 col-md-12 mb-3">
+      <div class="col-lg-3 col-md-12 mb-3">
         <h4 class="mb-1">Warehouse-wise Stock</h4>
         <!-- <p class="text-muted mb-0">Live stock position for all products across every warehouse</p> -->
       </div>
@@ -22,6 +22,18 @@
           <select id="stock_warehouse" class="form-control">
             <option value="">All Warehouses</option>
             @foreach($warehouses as $warehouse)<option value="{{ $warehouse->id }}">{{ $warehouse->warehouse_name }}</option>@endforeach
+          </select>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 mb-3">
+        <div class="input_section mb-0">
+          <label for="stock_page_length">Records per page</label>
+          <select id="stock_page_length" class="form-control">
+            <option value="10">10</option>
+            <option value="25" selected>25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="-1">All</option>
           </select>
         </div>
       </div>
@@ -61,7 +73,7 @@
 $(function(){
   const currency=new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',minimumFractionDigits:2});
   const table=$('#stock-summary-table').DataTable({
-    processing:true,serverSide:true,order:[[0,'asc'],[1,'asc']],dom:'rtip',
+    processing:true,serverSide:true,order:[[0,'asc'],[1,'asc']],dom:'rtip',pageLength:25,
     ajax:{url:"{{ route('inventory.stock-summary') }}",data:function(d){
       d.search_text=$('#stock_search').val();d.warehouse_id=$('#stock_warehouse').val();
     }},
@@ -72,11 +84,21 @@ $(function(){
       {data:'stock_value',name:'stock_value',searchable:false}
     ]
   });
+  let allRowsTotal=1;
   table.on('xhr.dt',function(e,settings,json){
     $('#total-stock-value').text(currency.format(parseFloat(json?.total_stock_value||0)));
+    // "All" needs a real row count -- the server treats length=-1 as 10.
+    allRowsTotal=Math.max(parseInt(json?.recordsFiltered||0,10),1);
+    if($('#stock_page_length').val()==='-1'&&table.page.len()!==allRowsTotal){
+      setTimeout(()=>table.page.len(allRowsTotal).draw(),0);
+    }
   });
   let timer;$('#stock_search').on('input',function(){clearTimeout(timer);timer=setTimeout(()=>table.ajax.reload(),350)});
   $('#stock_warehouse').on('change',()=>table.ajax.reload());
+  $('#stock_page_length').on('change',function(){
+    const value=parseInt(this.value,10);
+    table.page.len(value>0?value:allRowsTotal).draw();
+  });
 });
 </script>
 </x-app-layout>
