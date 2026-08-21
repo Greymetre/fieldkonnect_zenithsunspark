@@ -235,6 +235,77 @@ class DashboardController extends Controller
         }
     }
 
+    /**
+     * Return attendance totals for the authenticated user's reporting
+     * hierarchy. Each attendance row is placed in one dashboard bucket.
+     */
+    public function dashboardSummary(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'date' => 'nullable|date_format:Y-m-d',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $validator->errors(),
+                ], $this->badrequest);
+            }
+
+            $date = $request->input('date', getcurentDate());
+            $userIds = array_values(array_unique(getUsersReportingToAuth($request->user()->id)));
+
+            // Match the population used by the web Attendance Summary Report.
+            $activeUserIds = User::whereIn('id', $userIds)
+                ->where('active', 'Y')
+                ->where('show_attandance_report', '1')
+                ->pluck('id')
+                ->toArray();
+
+            $attendance = Attendance::whereIn('user_id', $activeUserIds)
+                ->whereDate('punchin_date', $date)
+                ->get(['user_id', 'punchin_time', 'working_type']);
+
+            $fullDayLeaveTypes = ['Full Day Leave', 'Leave'];
+            $leaveRecords = $attendance->whereIn('working_type', $fullDayLeaveTypes);
+            $punchedInRecords = $attendance
+                ->whereNotIn('working_type', $fullDayLeaveTypes)
+                ->filter(function ($row) {
+                    return !empty($row->punchin_time);
+                });
+
+            // The CRM total excludes the logged-in manager, while attendance
+            // counts still include the manager's own punch/leave row.
+            $totalUserIds = array_values(array_filter($activeUserIds, function ($userId) use ($request) {
+                return (int) $userId !== (int) $request->user()->id;
+            }));
+
+            $totalUsers = count($totalUserIds);
+            $punchedIn = $punchedInRecords->count();
+            $onLeave = $leaveRecords->count();
+            $missPunch = max(0, $totalUsers - $punchedIn - $onLeave);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Dashboard summary retrieved successfully.',
+                'data' => [
+                    'date' => $date,
+                    'total_users' => $totalUsers,
+                    'total_punch_in' => $punchedIn,
+                    'total_not_punch_in' => $missPunch,
+                    'total_leave_today' => $onLeave,
+                    'reporting_user_ids' => $totalUserIds,
+                ],
+            ], $this->successStatus);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], $this->internalError);
+        }
+    }
+
     public function getKyc(Request $request)
     {
 
