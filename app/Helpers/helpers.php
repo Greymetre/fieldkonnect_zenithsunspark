@@ -1212,10 +1212,10 @@ if (!function_exists('SendPushNotificationToToken')) {
             }
 
             $serviceAccount = json_decode((string) file_get_contents($credentialsPath), true);
-            $projectId = $serviceAccount['project_id'] ?? 'zenithsunspark-5813b';
-            if ($projectId !== 'zenithsunspark-5813b') {
+            $projectId = $serviceAccount['project_id'] ?? 'fieldkonnect-zenith-sun-spark';
+            if ($projectId !== 'fieldkonnect-zenith-sun-spark') {
                 \Log::error('Push notification failed: Firebase service account belongs to the wrong project.', [
-                    'expected_project_id' => 'zenithsunspark-5813b',
+                    'expected_project_id' => 'fieldkonnect-zenith-sun-spark',
                     'actual_project_id' => $projectId,
                     'credentials_file' => basename($credentialsPath),
                 ]);

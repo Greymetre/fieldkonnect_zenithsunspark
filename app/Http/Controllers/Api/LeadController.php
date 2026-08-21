@@ -1100,10 +1100,15 @@ class LeadController extends Controller
     {
         try {
             $user = $request->user();
-            $notifications = LeadNotification::where(['user_id' => $user->id, 'read' => 0])->latest()->paginate($request->pageSize ?? 30);
+            $notifications = LeadNotification::where('user_id', $user->id)
+                ->when($request->has('read'), function ($query) use ($request) {
+                    $query->where('read', $request->boolean('read'));
+                })
+                ->latest()
+                ->paginate($request->integer('pageSize', 30));
             return response()->json([
                 'status' => 'success',
-                'data' => $notifications->items(),
+                'data' => $notifications,
                 'message' => 'Notifications retrieved successfully'
             ], $this->successStatus);
         } catch (\Exception $e) {
