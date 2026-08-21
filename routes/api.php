@@ -169,6 +169,8 @@ Route::group(['middleware' => ['auth:customers']], function () {
 });
 
 Route::group(['middleware' => ['auth:users']], function () {
+    Route::post('mobile/session/sync', [LoginController::class, 'syncMobileSession']);
+
     // Dashboard
     Route::any('dashboard', [DashboardController::class, 'dashboard']);
     Route::get('dashboard_summary', [DashboardController::class, 'dashboardSummary']);

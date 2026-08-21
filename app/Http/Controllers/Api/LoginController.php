@@ -103,10 +103,14 @@ class LoginController extends Controller
             $password = $request->input('password');
             if (Hash::check($password, $user['password'])) {
                 $token = $user->createToken('gSQ01LKOg1JV0O9eMsDiAN0TqkQlOpulK7vWemPF')->accessToken;
-                $user->update([
-                    'notification_id' => !empty($request['device_token']) ? $request['device_token'] : '',
-                    'device_type' => isset($request['device_type']) ? $request['device_type'] : ''
-                ]);
+                $userUpdate = [
+                    'device_type' => $request->input('device_type', ''),
+                ];
+                $notificationId = $request->input('fcm_token', $request->input('device_token'));
+                if (!empty($notificationId)) {
+                    $userUpdate['notification_id'] = $notificationId;
+                }
+                $user->update($userUpdate);
                 $todayDate = Carbon::today()->toDateString();
                 $todayBeatSchedule = BeatSchedule::where('user_id', $user['id'])->where('beat_date', $todayDate)->get();
                 $beatUser = BeatUser::where('user_id', $user['id'])->get();
@@ -210,6 +214,54 @@ class LoginController extends Controller
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], $this->internalError);
         }
+    }
+
+    public function syncMobileSession(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'fcm_token' => 'nullable|string',
+            'device_token' => 'nullable|string',
+            'app_version' => 'nullable|string',
+            'build_number' => 'nullable|string',
+            'device_type' => 'nullable|string',
+            'device_name' => 'nullable|string',
+            'unique_id' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'message' => $validator->errors()], $this->noContent);
+        }
+
+        $user = $request->user();
+        $notificationId = $request->input('fcm_token', $request->input('device_token'));
+        $userUpdate = [];
+
+        if (!empty($notificationId)) {
+            $userUpdate['notification_id'] = $notificationId;
+            \Log::info('Mobile FCM token synchronized.', [
+                'user_id' => $user->id,
+                'device_type' => $request->input('device_type'),
+                'token_fingerprint' => substr(hash('sha256', $notificationId), 0, 12),
+            ]);
+        }
+        if ($request->filled('device_type')) {
+            $userUpdate['device_type'] = $request->input('device_type');
+        }
+        if (!empty($userUpdate)) {
+            $user->update($userUpdate);
+        }
+
+        MobileUserLoginDetails::updateOrCreate(['user_id' => $user->id], [
+            'app_version' => $request->input('app_version'),
+            'device_name' => $request->input('device_name'),
+            'device_type' => $request->input('device_type'),
+            'unique_id' => $request->input('unique_id'),
+            'last_login_date' => Carbon::now(),
+            'login_status' => '1',
+            'app' => '2',
+        ]);
+
+        return response()->json(['status' => 'success', 'message' => 'Mobile session synchronized.']);
     }
 
     public function customerLogin(Request $request)
