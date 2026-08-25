@@ -358,10 +358,10 @@ class LeadController extends Controller
                 'lead_generation_date' => (
                     !empty($lead->lead_generation_date) && $lead->lead_generation_date != '0000-00-00'
                     ? date('d M Y', strtotime($lead->lead_generation_date))
-                    : $lead->created_at->format('d M Y')
+                    : $lead->created_at?->format('d M Y')
                 ),
                 'conversion_date' => $lead->conversion_date ? date('d M Y', strtotime($lead->conversion_date)) : null,
-                'updated_at' => $lead->updated_at->format('d M Y'),
+                'updated_at' => $lead->updated_at?->format('d M Y'),
             ];
             $lead_notes = LeadNote::with('createdby:id,name')->where(['lead_id' => $lead->id])->get();
             $lead_tasks = LeadTask::with('assignUser:id,name', 'createdby:id,name')->where(['lead_id' => $lead->id])->get();
@@ -369,22 +369,22 @@ class LeadController extends Controller
             $opportunities = LeadOpportunity::where(['lead_id' => $lead->id])->get();
             $lead_notes->each(function ($item) {
                 $item->type = 'note';
-                $item->created_at_formatted = $item->created_at->format('d M Y');
+                $item->created_at_formatted = $item->created_at?->format('d M Y');
                 $item->note = strip_tags($item->note);
             });
             $lead_tasks->each(function ($item) {
                 $item->type = 'task';
-                $item->created_at_formatted = $item->created_at->format('d M Y');
+                $item->created_at_formatted = $item->created_at?->format('d M Y');
                 $item->assignUser = $item->assignUser ?? '';
                 $item->date = date('d-m-Y', strtotime($item->date));
             });
             $lead_logs->each(function ($item) {
                 $item->type = 'log';
-                $item->created_at_formatted = $item->created_at->format('d M Y');
+                $item->created_at_formatted = $item->created_at?->format('d M Y');
             });
             $opportunities->each(function ($item) {
                 $item->type = 'opportunity';
-                $item->created_at_formatted = $item->created_at->format('d M Y');
+                $item->created_at_formatted = $item->created_at?->format('d M Y');
             });
 
             $combined = $lead_notes->merge($lead_tasks)->merge($lead_logs)->merge($opportunities)->sortByDesc('created_at')->values();
@@ -700,10 +700,15 @@ class LeadController extends Controller
             }
             $user_id = $user->id;
             $pageSize = $request->input('pageSize');
-            $query = $this->checkin->where(function ($query) use ($user_id) {
-                $query->where('user_id', '=', $user_id);
-            })
-                ->select('id', 'lead_id', 'checkin_date', 'checkin_time', 'checkin_latitude', 'checkin_longitude', 'checkin_address', 'checkout_date', 'checkout_time', 'checkout_latitude', 'checkout_longitude', 'checkout_address', 'beatscheduleid')->orderBy('checkin_date', 'desc')->orderBy('checkin_time', 'desc');
+            // `lead_check_in` has no `beatscheduleid` column (that belongs to the
+            // customer `check_in` table) and the lead relation on LeadCheckIn is
+            // `lead`, not `leads`. Selecting/reading those raised an exception the
+            // catch below turned into a 500 on every lead detail view.
+            $query = $this->checkin->with('lead:id,company_name')
+                ->where(function ($query) use ($user_id) {
+                    $query->where('user_id', '=', $user_id);
+                })
+                ->select('id', 'lead_id', 'checkin_date', 'checkin_time', 'checkin_latitude', 'checkin_longitude', 'checkin_address', 'checkout_date', 'checkout_time', 'checkout_latitude', 'checkout_longitude', 'checkout_address')->orderBy('checkin_date', 'desc')->orderBy('checkin_time', 'desc');
             $db_data = (!empty($pageSize)) ? $query->paginate($pageSize) : $query->get();
             $data = collect([]);
             if ($db_data->isNotEmpty()) {
@@ -711,8 +716,8 @@ class LeadController extends Controller
                     $data->push([
                         'checkin_id' => isset($value['id']) ? $value['id'] : 0,
                         'lead_id' => isset($value['lead_id']) ? $value['lead_id'] : null,
-                        'customer_name' => isset($value['customers']['name']) ? $value['customers']['name'] : $value['leads']['name'],
-                        'customer_type' => isset($value['customers']['customertypes']['customertype_name']) ? $value['customers']['customertypes']['customertype_name'] : '',
+                        'customer_name' => $value->lead->company_name ?? '',
+                        'customer_type' => '',
                         'checkin_date' => isset($value['checkin_date']) ? $value['checkin_date'] : '',
                         'checkin_time' => isset($value['checkin_time']) ? $value['checkin_time'] : '',
                         'checkin_latitude' => isset($value['checkin_latitude']) ? $value['checkin_latitude'] : '',
@@ -723,8 +728,11 @@ class LeadController extends Controller
                         'checkout_latitude' => isset($value['checkout_latitude']) ? $value['checkout_latitude'] : '',
                         'checkout_longitude' => isset($value['checkout_longitude']) ? $value['checkout_longitude'] : '',
                         'checkout_address' => isset($value['checkout_address']) ? $value['checkout_address'] : '',
-                        'is_lead' => isset($value['lead_id']) ? 'No' : 'Yes',
-                        'beat_schedule_id' => isset($value['beatscheduleid']) ? $value['beatscheduleid'] : 0,
+                        // Every row here is a lead check-in; the copied version had
+                        // this ternary the wrong way round.
+                        'is_lead' => isset($value['lead_id']) ? 'Yes' : 'No',
+                        // Lead check-ins are not part of a beat schedule.
+                        'beat_schedule_id' => 0,
                     ]);
                 }
                 return response()->json(['status' => 'success', 'message' => 'Data retrieved successfully.', 'data' => $data], $this->successStatus);
