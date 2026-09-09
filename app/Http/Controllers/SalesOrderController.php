@@ -63,7 +63,7 @@ class SalesOrderController extends Controller
                     if (Gate::allows('sales_order_show')) {
                         $buttons .= '<button type="button" class="btn btn-link text-primary view-sales-order" data-url="' . e(route('sales-orders.show', $row)) . '">View</button>';
                     }
-                    if ($row->status === 'payment_pending' && Gate::allows('sales_order_delete')) {
+                    if (Gate::allows('sales_order_delete')) {
                         $buttons .= '<button type="button" class="btn btn-danger btn-sm delete-sales-order" data-id="' . $row->id . '">Delete</button>';
                     }
                     return $buttons;
@@ -332,9 +332,13 @@ class SalesOrderController extends Controller
     public function destroy(SalesOrder $salesOrder)
     {
         abort_if(Gate::denies('sales_order_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        abort_if($salesOrder->status !== 'payment_pending', Response::HTTP_UNPROCESSABLE_ENTITY, 'Only Payment Pending orders can be deleted.');
-        $salesOrder->delete();
-        return response()->json(['status' => 'success', 'message' => 'Sales Order deleted successfully.']);
+        app(\App\Services\SalesOrderDeletion::class)->delete($salesOrder, Auth::id());
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Sales Order deleted and net dispatched stock restored successfully.',
+            'pending_sales_order_count' => SalesOrder::whereIn('status', ['payment_pending', 'payment_partial'])->count(),
+            'pending_dispatch_count' => SalesOrder::whereIn('status', ['confirmed', 'partially_dispatched'])->count(),
+        ]);
     }
 
     public function paymentModal(SalesOrder $salesOrder)
@@ -396,9 +400,12 @@ class SalesOrderController extends Controller
     public function confirm(SalesOrder $salesOrder)
     {
         abort_if(Gate::denies('sales_order_confirm'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        abort_unless(in_array($salesOrder->status, ['payment_partial', 'payment_received'], true), Response::HTTP_UNPROCESSABLE_ENTITY, 'A payment is required before confirming the sale.');
-        abort_unless($salesOrder->payments()->exists(), Response::HTTP_UNPROCESSABLE_ENTITY, 'A payment receipt is required before confirming the sale.');
-        $salesOrder->update(['status' => 'confirmed', 'updated_by' => Auth::id()]);
+        DB::transaction(function () use ($salesOrder) {
+            $order = SalesOrder::whereKey($salesOrder->id)->lockForUpdate()->firstOrFail();
+            abort_unless(in_array($order->status, ['payment_partial', 'payment_received'], true), Response::HTTP_UNPROCESSABLE_ENTITY, 'A payment is required before confirming the sale.');
+            abort_unless($order->payments()->exists(), Response::HTTP_UNPROCESSABLE_ENTITY, 'A payment receipt is required before confirming the sale.');
+            $order->update(['status' => 'confirmed', 'updated_by' => Auth::id()]);
+        });
 
         return response()->json([
             'status' => 'success',
@@ -411,8 +418,10 @@ class SalesOrderController extends Controller
     {
         abort_if(Gate::denies('dispatch_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         if ($request->ajax()) {
-            $query = SalesOrder::with(['customer', 'warehouse', 'items', 'latestPayment'])
-                ->whereIn('status', ['confirmed', 'partially_dispatched'])
+            $query = SalesOrder::with(['customer', 'warehouse', 'items', 'latestPayment', 'dispatches'])
+                ->whereIn('status', ['confirmed', 'partially_dispatched', 'dispatched'])
+                ->when($request->input('dispatch_status', 'pending') === 'pending', fn ($query) => $query->whereIn('status', ['confirmed', 'partially_dispatched']))
+                ->when($request->input('dispatch_status') === 'dispatched', fn ($query) => $query->where('status', 'dispatched'))
                 ->when($request->filled('search_text'), function ($query) use ($request) {
                     $search = $request->search_text;
                     $query->where(function ($q) use ($search) {
@@ -430,17 +439,45 @@ class SalesOrderController extends Controller
                 ->addColumn('customer_name', fn ($row) => optional($row->customer)->name)
                 ->addColumn('warehouse_name', fn ($row) => optional($row->warehouse)->warehouse_name)
                 ->addColumn('item_count', fn ($row) => $row->items->count())
+                ->addColumn('pending_quantity', fn ($row) => round($row->items->sum('quantity') - $row->items->sum('dispatched_quantity'), 3))
+                ->addColumn('order_status', fn ($row) => $row->status === 'confirmed' ? 'Ready to Dispatch' : ucwords(str_replace('_', ' ', $row->status)))
                 ->addColumn('payment_mode', fn ($row) => '<span class="badge badge-success">' . strtoupper(str_replace('_', ' ', optional($row->latestPayment)->payment_mode ?: '-')) . '</span>')
                 ->addColumn('action', function ($row) {
-                    if (Gate::allows('dispatch_create')) {
-                        return '<button type="button" class="btn btn-warning btn-sm open-dispatch" data-url="' . e(route('dispatch.modal', $row)) . '">Dispatch → Stock OUT</button>';
+                    $buttons = '';
+                    if (in_array($row->status, ['confirmed', 'partially_dispatched'], true) && Gate::allows('dispatch_create')) {
+                        $buttons .= '<button type="button" class="btn btn-warning btn-sm mr-1 open-dispatch" data-url="' . e(route('dispatch.modal', $row)) . '">Dispatch → Stock OUT</button>';
                     }
-                    return '';
+                    if ($row->dispatches->contains(fn ($dispatch) => str_starts_with((string) $dispatch->dispatch_number, 'DSP-'))) {
+                        $buttons .= '<button type="button" class="btn btn-info btn-sm dispatch-history" data-url="' . e(route('dispatch.history', $row)) . '">Dispatch History</button>';
+                    }
+                    return $buttons;
                 })
                 ->rawColumns(['order_type', 'payment_mode', 'action'])
                 ->make(true);
         }
         return view('sales_orders.dispatch');
+    }
+
+    public function dispatchHistory(SalesOrder $salesOrder)
+    {
+        abort_if(Gate::denies('dispatch_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $salesOrder->load(['items.product', 'returns']);
+        $dispatches = $salesOrder->dispatches()->where('dispatch_number', 'like', 'DSP-%')
+            ->with('items.product')->orderByDesc('id')->get();
+        return view('sales_orders.partials.dispatch_history', compact('salesOrder', 'dispatches'));
+    }
+
+    public function destroyDispatch(SalesOrder $salesOrder, SalesOrderDispatch $dispatch)
+    {
+        abort_if(Gate::denies('dispatch_access') || Gate::denies('sales_order_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $order = app(\App\Services\DispatchDeletion::class)->delete($salesOrder, $dispatch, Auth::id());
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Dispatch deleted. Stock restored and SO pending quantities updated.',
+            'order_status' => $order->status,
+            'pending_quantity' => round($order->items->sum('quantity') - $order->items->sum('dispatched_quantity'), 3),
+            'pending_dispatch_count' => SalesOrder::whereIn('status', ['confirmed', 'partially_dispatched'])->count(),
+        ]);
     }
 
     public function dispatchModal(SalesOrder $salesOrder)

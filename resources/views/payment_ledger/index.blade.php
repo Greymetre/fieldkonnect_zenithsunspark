@@ -8,7 +8,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
       <p class="text-muted mb-0">Customer payment tracking against Sales Orders</p>
       <select id="ledger_status" class="form-control" style="max-width:220px">
-        <option value="">All Statuses</option><option value="pending">Pending</option><option value="partial">Partial</option><option value="paid">Paid</option>
+        <option value="">All Statuses</option><option value="pending">Pending</option><option value="partial">Partial</option><option value="paid">Paid</option><option value="refund_pending">Deleted / Refund Pending</option>
       </select>
     </div>
     <div class="table-responsive"><table id="payment-ledger-table" class="table table-striped table-bordered responsive no-wrap">

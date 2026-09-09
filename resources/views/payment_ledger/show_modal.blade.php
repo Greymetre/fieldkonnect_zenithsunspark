@@ -4,6 +4,9 @@
   <p><strong>Customer:</strong> {{ $salesOrder->customer->name }}</p>
   <p><strong>Order No.:</strong> {{ $salesOrder->order_number }}</p>
   <p><strong>Order Amount:</strong> ₹{{ number_format($salesOrder->grand_total,2) }}</p>
+  @if($salesOrder->trashed())
+    <div class="alert alert-warning">This SO was deleted. No balance is collectible. Refund pending: <strong>₹{{ number_format($paidAmount,2) }}</strong>. Arrange the refund separately; deleting the order does not transfer money.</div>
+  @endif
   @if($salesOrder->payments->isEmpty())
     <div class="alert alert-warning">No payment received yet.</div>
   @else
@@ -16,7 +19,7 @@
     <div class="col-md-6 text-right"><strong>Balance Due:</strong> ₹{{ number_format($balanceDue,2) }}</div></div>
 </div>
 <div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-  @if($balanceDue > 0 && auth()->user()->can('sales_order_payment'))
+  @if(!$salesOrder->trashed() && $balanceDue > 0 && auth()->user()->can('sales_order_payment'))
     <button type="button" class="btn btn-success receive-balance-payment" data-url="{{ route('sales-orders.payment.modal',$salesOrder) }}">Receive Balance Payment</button>
   @endif
 </div>

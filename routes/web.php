@@ -345,10 +345,12 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('sales-orders/{sales_order}/returns/{return}/accept', [SalesOrderController::class, 'acceptReturnModal'])->name('sales-orders.return.accept.modal');
     Route::post('sales-orders/{sales_order}/returns/{return}/accept', [SalesOrderController::class, 'acceptReturn'])->name('sales-orders.return.accept');
     Route::get('dispatch', [SalesOrderController::class, 'dispatchIndex'])->name('dispatch.index');
+    Route::get('dispatch/{sales_order}/history', [SalesOrderController::class, 'dispatchHistory'])->name('dispatch.history');
+    Route::delete('dispatch/{sales_order}/records/{dispatch}', [SalesOrderController::class, 'destroyDispatch'])->name('dispatch.destroy');
     Route::get('dispatch/{sales_order}', [SalesOrderController::class, 'dispatchModal'])->name('dispatch.modal');
     Route::post('dispatch/{sales_order}', [SalesOrderController::class, 'storeDispatch'])->name('dispatch.store');
     Route::get('payment-ledger', [PaymentLedgerController::class, 'index'])->name('payment-ledger.index');
-    Route::get('payment-ledger/{sales_order}', [PaymentLedgerController::class, 'show'])->name('payment-ledger.show');
+    Route::get('payment-ledger/{sales_order}', [PaymentLedgerController::class, 'show'])->withTrashed()->name('payment-ledger.show');
 
     //Ware House Routs
     Route::resource('ware_house', WareHouseController::class);

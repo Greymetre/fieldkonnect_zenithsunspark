@@ -54,9 +54,9 @@
       <strong>{{ $salesOrder->items->count() }}</strong>
     </div></div>
   </div>
-  <div class="table-responsive"><table class="table"><thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>GST%</th><th>Amount</th></tr></thead>
+  <div class="table-responsive"><table class="table"><thead><tr><th>Product</th><th>Qty</th><th>Dispatched</th><th>Remaining</th><th>Rate</th><th>GST%</th><th>Amount</th></tr></thead>
     <tbody>@foreach($salesOrder->items as $item)<tr><td>{{ $item->product->product_name }}</td><td>{{ rtrim(rtrim(number_format($item->quantity,3,'.',''),'0'),'.') }}</td>
-      <td>₹{{ number_format($item->rate,2) }}</td><td>{{ number_format($item->gst_percent,2) }}%</td><td>₹{{ number_format($item->total_amount,2) }}</td></tr>@endforeach</tbody>
+      <td>{{ (float) $item->dispatched_quantity }}</td><td>{{ round($item->quantity - $item->dispatched_quantity, 3) }}</td><td>₹{{ number_format($item->rate,2) }}</td><td>{{ number_format($item->gst_percent,2) }}%</td><td>₹{{ number_format($item->total_amount,2) }}</td></tr>@endforeach</tbody>
   </table></div>
   <div class="so-total-box">
     <div><span>Subtotal</span><strong>₹{{ number_format($salesOrder->subtotal,2) }}</strong></div>

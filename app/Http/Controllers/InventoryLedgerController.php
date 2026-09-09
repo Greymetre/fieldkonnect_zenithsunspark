@@ -134,6 +134,12 @@ class InventoryLedgerController extends Controller
             return $row->po_number;
         }
         if (!empty($row->order_number)) {
+            if ($row->transaction_type === 'sales_delete_reversal') {
+                return $row->order_number . ' (Deletion reversal)';
+            }
+            if ($row->transaction_type === 'dispatch_delete_reversal') {
+                return $row->order_number . ' (Dispatch deletion reversal)';
+            }
             return $row->order_number . ($row->transaction_type === 'sales_return' ? ' ↩' : '');
         }
 

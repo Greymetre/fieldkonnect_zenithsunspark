@@ -88,20 +88,7 @@ $(function(){
       $('#sales-order-errors').html(errors?Object.values(errors).flat().join('<br>'):(xhr.responseJSON?.message||'Unable to create order.')).show();
     });
   });
-  $(document).on('click','.delete-sales-order',function(){
-    const button=$(this);
-    appSwalConfirm({
-      title:'Delete Sales Order?',
-      text:'This payment-pending order will be permanently deleted.',
-      confirmButtonText:'Yes, Delete',
-      confirmButtonClass:'btn btn-danger'
-    }).then(function(confirmed){
-      if(!confirmed)return;
-      $.ajax({url:"{{ url('sales-orders') }}/"+button.data('id'),type:'DELETE',data:{_token:"{{ csrf_token() }}"}})
-        .done(r=>{table.ajax.reload();appSwalSuccess(r.message,'Deleted')})
-        .fail(x=>appSwalError(x.responseJSON?.message||'Unable to delete order.'));
-    });
-  });
+  @include('sales_orders.partials.delete_script')
   $(document).on('submit','#sales-payment-form',function(e){
     e.preventDefault();const form=$(this),button=$('#confirm-sales-payment').prop('disabled',true);
     $('#sales-payment-errors').hide().empty();
