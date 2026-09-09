@@ -29,6 +29,7 @@ use App\Models\LeadNotification;
 use App\Models\OpeningStock;
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Str;
 
 if (! function_exists('sendmessage')) {
@@ -1185,45 +1186,136 @@ if (!function_exists('isCustomerUser')) {
     }
 }
 
-if (!function_exists('SendPushNotification')) {
-    function SendPushNotification($user_id, $message, $model = 'lead')
+if (!function_exists('SendPushNotificationToToken')) {
+    function SendPushNotificationToToken($deviceToken, $message, $model = 'general', $title = 'FieldKonnect')
     {
-        $user = User::find($user_id);
+        try {
+            $deviceToken = trim((string) $deviceToken);
+            if ($deviceToken === '') {
+                \Log::warning('Push notification skipped: FCM token is empty.');
+                return false;
+            }
 
-        $fcmToken = $user->notification_id;
-        if (!empty($fcmToken)) {
-            $title = 'FieldKonnect';
-            $credentialsPath = storage_path('app/zenithsunspark-5813b-firebase-adminsdk-fbsvc-68d9a87b66.json');
+            $configuredCredentials = config('firebase.projects.app.credentials');
+            $fallbackCredentials = storage_path('app/fieldkonnect-zenith-sun-spark-firebase-adminsdk-fbsvc-27d8a42fee.json');
+            $legacyCredentials = storage_path('app/fieldkonnect-zenith-sun-spark-firebase-adminsdk-fbsvc-27d8a42fee.json');
+            $credentialsPath = is_string($configuredCredentials) && is_readable($configuredCredentials)
+                ? $configuredCredentials
+                : (is_readable($fallbackCredentials) ? $fallbackCredentials : $legacyCredentials);
             $scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
-            $projectId = 'zenithsunspark-5813b';
-            $deviceToken = $fcmToken;
+
+            if (!is_readable($credentialsPath)) {
+                \Log::error('Push notification failed: Firebase credentials file is missing or unreadable.', [
+                    'credentials_path' => $credentialsPath,
+                ]);
+                return false;
+            }
+
+            $serviceAccount = json_decode((string) file_get_contents($credentialsPath), true);
+            $projectId = $serviceAccount['project_id'] ?? 'fieldkonnect-zenith-sun-spark';
+            if ($projectId !== 'fieldkonnect-zenith-sun-spark') {
+                \Log::error('Push notification failed: Firebase service account belongs to the wrong project.', [
+                    'expected_project_id' => 'fieldkonnect-zenith-sun-spark',
+                    'actual_project_id' => $projectId,
+                    'credentials_file' => basename($credentialsPath),
+                ]);
+                return false;
+            }
+            \Log::info('Push notification delivery attempt.', [
+                'model' => $model,
+                'project_id' => $projectId,
+                'token_fingerprint' => substr(hash('sha256', $deviceToken), 0, 12),
+                'credentials_file' => basename($credentialsPath),
+            ]);
+
             $client = new Client();
             $credentials = new ServiceAccountCredentials($scopes, $credentialsPath);
-            $credentials->fetchAuthToken();
-            $token = $credentials->getLastReceivedToken()['access_token'];
+            $authToken = $credentials->fetchAuthToken();
+            $token = $authToken['access_token'] ?? null;
+
+            if (empty($token)) {
+                \Log::error('Push notification failed: Firebase OAuth access token was not returned.');
+                return false;
+            }
+
             $messagePayload = [
                 'message' => [
                     'token' => $deviceToken,
+                    'notification' => [
+                        'title' => $title,
+                        'body' => $message,
+                    ],
                     'data' => [
                         'title' => $title,
                         'body'  => $message,
                         'image' => $model,
+                        'model' => $model,
+                    ],
+                    'android' => [
+                        'priority' => 'high',
+                        'notification' => ['sound' => 'default'],
+                    ],
+                    'apns' => [
+                        'headers' => ['apns-priority' => '10'],
+                        'payload' => ['aps' => ['sound' => 'default']],
                     ],
                 ],
             ];
+
             $response = $client->post("https://fcm.googleapis.com/v1/projects/$projectId/messages:send", [
                 'headers' => [
                     'Authorization' => "Bearer $token",
                     'Content-Type'  => 'application/json',
                 ],
                 'json'    => $messagePayload,
+                'timeout' => 15,
             ]);
+
             if ($response->getStatusCode() == 200) {
+                \Log::info('Push notification sent.', [
+                    'model' => $model,
+                    'token_fingerprint' => substr(hash('sha256', $deviceToken), 0, 12),
+                ]);
                 return true;
             }
-        } else {
+        } catch (RequestException $e) {
+            $response = $e->getResponse();
+            \Log::error('Push notification failed at FCM.', [
+                'model' => $model,
+                'http_status' => $response ? $response->getStatusCode() : null,
+                'fcm_response' => $response ? (string) $response->getBody() : null,
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        } catch (\Exception $e) {
+            \Log::error('Push notification failed: ' . $e->getMessage(), ['model' => $model]);
             return false;
         }
+
+        return false;
+    }
+}
+
+if (!function_exists('SendPushNotification')) {
+    function SendPushNotification($user_id, $message, $model = 'lead', $title = 'FieldKonnect')
+    {
+        if (!User::whereKey($user_id)->exists()) {
+            \Log::warning('Push notification skipped: user not found.', ['user_id' => $user_id]);
+            return false;
+        }
+
+        $deviceToken = trim((string) User::whereKey($user_id)->value('notification_id'));
+        if ($deviceToken === '') {
+            \Log::warning('Push notification skipped: user has no FCM token.', ['user_id' => $user_id]);
+            return false;
+        }
+
+        \Log::info('Push notification user token loaded.', [
+            'user_id' => $user_id,
+            'token_fingerprint' => substr(hash('sha256', $deviceToken), 0, 12),
+        ]);
+
+        return SendPushNotificationToToken($deviceToken, $message, $model, $title);
     }
 }
 
