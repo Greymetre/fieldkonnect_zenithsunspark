@@ -11,6 +11,22 @@ class Lead extends Model implements HasMedia
 {
     use HasFactory,InteractsWithMedia;
 
+    public function scopeVisibleTo($query, User $user)
+    {
+        if ($user->hasRole('superadmin')) {
+            return $query;
+        }
+
+        $userIds = getUsersReportingToAuth($user->id);
+        return $query->where(function ($query) use ($userIds) {
+            $query->whereIn('leads.assign_to', $userIds)
+                ->orWhereIn('leads.created_by', $userIds)
+                ->orWhereHas('tasks', function ($tasks) use ($userIds) {
+                    $tasks->whereIn('assigned_to', $userIds)->orWhereIn('created_by', $userIds);
+                });
+        });
+    }
+
     protected $fillable = [
         'company_name',
         'company_url',

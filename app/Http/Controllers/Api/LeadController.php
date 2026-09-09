@@ -55,13 +55,7 @@ class LeadController extends Controller
         $listQuery = Lead::query()
             ->with(['address', 'status_is', 'contacts', 'notes', 'opportunities']);
 
-        if (!$user->hasRole('superadmin')) {
-            $reporting_users = getUsersReportingToAuth($user->id);
-            $listQuery->where(function ($q) use ($reporting_users) {
-                $q->whereIn('created_by', $reporting_users)
-                    ->orWhereIn('assign_to', $reporting_users);
-            });
-        }
+        $listQuery->visibleTo($user);
 
         if ($request->filled('search')) {
             $listQuery->where(function ($query) use ($request) {
@@ -123,13 +117,7 @@ class LeadController extends Controller
 
         $grouped = Lead::select('status', DB::raw('COUNT(*) as cnt'))
             ->groupBy('status');
-        if (!$user->hasRole('superadmin')) {
-            $reporting_users = getUsersReportingToAuth($user->id);
-            $grouped->where(function ($q) use ($reporting_users) {
-                $q->whereIn('created_by', $reporting_users)
-                    ->orWhereIn('assign_to', $reporting_users);
-            });
-        };
+        $grouped->visibleTo($user);
         $grouped = $grouped->pluck('cnt', 'status');
 
         $counts = [
@@ -330,7 +318,7 @@ class LeadController extends Controller
         if ($validate->fails()) {
             return response()->json(['status' => 'error', 'message' => $validate->errors()], 400);
         }
-        $lead = Lead::with('assign_user:id,name')->find($request->lead_id);
+        $lead = Lead::visibleTo($request->user())->with('assign_user:id,name')->findOrFail($request->lead_id);
         if ($lead) {
             $data = [
                 'id' => $lead->id,
@@ -364,7 +352,7 @@ class LeadController extends Controller
                 'updated_at' => $lead->updated_at?->format('d M Y'),
             ];
             $lead_notes = LeadNote::with('createdby:id,name')->where(['lead_id' => $lead->id])->get();
-            $lead_tasks = LeadTask::with('assignUser:id,name', 'createdby:id,name')->where(['lead_id' => $lead->id])->get();
+            $lead_tasks = LeadTask::visibleTo($request->user())->with('assignUser:id,name', 'createdby:id,name')->where(['lead_id' => $lead->id])->get();
             $lead_logs = LeadLog::where(['lead_id' => $lead->id])->get();
             $opportunities = LeadOpportunity::where(['lead_id' => $lead->id])->get();
             $lead_notes->each(function ($item) {
@@ -492,10 +480,11 @@ class LeadController extends Controller
         }
         $created_by = $request->user()->id;
         $task_id = $request->task_id;
-        $lead_task = LeadTask::where(['id' => $task_id])->first();
+        Lead::visibleTo($request->user())->findOrFail($request->lead_id);
+        $lead_task = $task_id ? LeadTask::visibleTo($request->user())->findOrFail($task_id) : null;
 
         if ($lead_task) {
-            $lead_task->update(['assigned_to' => $request->assigned_to, 'lead_id' => $request->lead_id, 'created_by' => $created_by, 'description' => $request->description, 'date' => $request->date, 'time' => $request->time, 'priority' => $request->priority]);
+            $lead_task->update(['assigned_to' => $request->assigned_to, 'lead_id' => $request->lead_id, 'created_by' => $lead_task->created_by, 'description' => $request->description, 'date' => $request->date, 'time' => $request->time, 'priority' => $request->priority]);
             $new = false;
         } else {
             $lead_task = LeadTask::create(['assigned_to' => $request->assigned_to, 'lead_id' => $request->lead_id, 'created_by' => $created_by, 'description' => $request->description, 'date' => $request->date, 'time' => $request->time, 'priority' => $request->priority]);
@@ -847,62 +836,31 @@ class LeadController extends Controller
     public function getLeadTasks(Request $request)
     {
         try {
-            if (!$request->user()->hasRole('superadmin')) {
-                $lead_ids = Lead::where('assign_to', $request->user()->id)
-                    ->orWhere('created_by', $request->user()->id);
-
-                if ($request->input('search') != "") {
-                    $search = $request->input('search');
-                    $lead_ids = Lead::where(function ($query) use ($search) {
-                        $query->where('company_name', 'like', "%{$search}%")
-                            ->orWhereHas('contacts', function ($subQuery) use ($search) {
-                                $subQuery->where('name', 'like', "%{$search}%")
-                                    ->orWhere('phone_number', 'like', "%{$search}%");
-                            });
-                    });
-                }
-                $lead_ids = $lead_ids->pluck('id');
-
-                $tasks = LeadTask::with('lead:id,company_name', 'assignUser:id,name')
-                    ->whereIn('lead_id', $lead_ids);
-                if ($request->user_id && !empty($request->user_id)) {
-                    $tasks->where('assigned_to', $request->user_id);
-                }
-                if ($request->start_date && !empty($request->start_date) && $request->end_date && !empty($request->end_date)) {
-                    $tasks->whereBetween(DB::raw('DATE(created_at)'), [$request->start_date, $request->end_date]);
-                }
-                if ($request->status_id && !empty($request->status_id)) {
-                    $tasks->where('status', $request->status_id);
-                }
-                $tasks = $tasks->latest()->paginate($request->pageSize ?? 30);
-            } else {
-                $lead_ids = [];
-                if ($request->input('search') != "") {
-                    $search = $request->input('search');
-                    $lead_ids = Lead::where(function ($query) use ($search) {
-                        $query->where('company_name', 'like', "%{$search}%")
-                            ->orWhereHas('contacts', function ($subQuery) use ($search) {
-                                $subQuery->where('name', 'like', "%{$search}%")
-                                    ->orWhere('phone_number', 'like', "%{$search}%");
-                            });
-                    })->pluck('id');
-                }
-                $tasks = LeadTask::with('lead:id,company_name', 'assignUser:id,name');
-                if (isset($lead_ids) && count($lead_ids) > 0) {
-                    $tasks->whereIn('lead_id', $lead_ids);
-                }
-                if ($request->user_id && !empty($request->user_id)) {
-                    $tasks->where('assigned_to', $request->user_id);
-                }
-                if ($request->start_date && !empty($request->start_date) && $request->end_date && !empty($request->end_date)) {
-                    $tasks->whereBetween(DB::raw('DATE(created_at)'), [$request->start_date, $request->end_date]);
-                }
-                if ($request->status_id && !empty($request->status_id)) {
-                    $tasks->where('status', $request->status_id);
-                }
-                $tasks = $tasks->latest()
-                    ->paginate($request->pageSize ?? 30);
+            $tasks = LeadTask::visibleTo($request->user())
+                ->with('lead:id,company_name', 'assignUser:id,name');
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $tasks->where(function ($query) use ($search) {
+                    $query->where('description', 'like', "%{$search}%")
+                        ->orWhereHas('lead', function ($lead) use ($search) {
+                            $lead->where('company_name', 'like', "%{$search}%")
+                                ->orWhereHas('contacts', function ($contacts) use ($search) {
+                                    $contacts->where('name', 'like', "%{$search}%")
+                                        ->orWhere('phone_number', 'like', "%{$search}%");
+                                });
+                        });
+                });
             }
+            if ($request->filled('user_id')) {
+                $tasks->where('assigned_to', $request->user_id);
+            }
+            if ($request->filled('start_date') && $request->filled('end_date')) {
+                $tasks->whereBetween(DB::raw('DATE(created_at)'), [$request->start_date, $request->end_date]);
+            }
+            if ($request->filled('status_id')) {
+                $tasks->where('status', $request->status_id);
+            }
+            $tasks = $tasks->latest()->paginate($request->pageSize ?? 30);
 
             $tasks->each(function ($task) {
                 $task->date = date('d-m-Y', strtotime($task->date));
@@ -993,7 +951,7 @@ class LeadController extends Controller
         }
 
         $task_id = $request->task_id;
-        $lead_task = LeadTask::find($task_id);
+        $lead_task = LeadTask::visibleTo($request->user())->findOrFail($task_id);
         if ($lead_task) {
             $lead_task->update(['status' => $request->status, 'remark' => $request->remark ?? null]);
             if ($request->status == 'open') {

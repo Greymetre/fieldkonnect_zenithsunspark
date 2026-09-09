@@ -135,10 +135,7 @@ class LeadController extends Controller
         }
 
         // dd(auth()->user()->hasRole('superadmin'));
-        if (!Auth::user()->hasRole('superadmin') && !Auth::user()->hasRole('Admin')) {
-            $user_ids = getUsersReportingToAuth();
-            $leads->whereIn('assign_to', $user_ids);
-        }
+        $leads->visibleTo($request->user());
 
         $leads = $leads->orderBy('created_at', 'desc')->select(\DB::raw(with(new Lead)->getTable() . '.*'))->groupBy('id');
         return DataTables::of($leads)
@@ -237,10 +234,7 @@ class LeadController extends Controller
         $page_result = ($page_number - 1) * $results_per_page;
 
         $leads = Lead::with(['contacts', 'opportunities']);
-        if (!Auth::user()->hasRole('superadmin') && !Auth::user()->hasRole('Admin')) {
-            $user_ids = getUsersReportingToAuth();
-            $leads->where('assign_to', $user_ids);
-        }
+        $leads->visibleTo($request->user());
 
         $datetime = $request->input('datetime');
         if ($datetime != "") {
@@ -663,6 +657,8 @@ class LeadController extends Controller
      */
     public function show(Request $request, Lead $lead)
     {
+        abort_if(Gate::denies('lead_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        Lead::visibleTo($request->user())->findOrFail($lead->id);
         $userids = getUsersReportingToAuth();
         $users = User::whereDoesntHave('roles', function ($query) {
             $query->whereIn('id', config('constants.customer_roles'));
@@ -674,7 +670,7 @@ class LeadController extends Controller
 
         $lead_contacts = LeadContact::where(['lead_id' => $lead->id])->get();
         $lead_notes = LeadNote::where(['lead_id' => $lead->id])->get();
-        $lead_tasks = LeadTask::where(['lead_id' => $lead->id])->get();
+        $lead_tasks = LeadTask::visibleTo($request->user())->where(['lead_id' => $lead->id])->get();
         $lead_opportunities = LeadOpportunity::where(['lead_id' => $lead->id])->get();
 
         $pincodes = Pincode::where('active', '=', 'Y')

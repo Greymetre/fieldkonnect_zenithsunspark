@@ -31,12 +31,9 @@ class LeadTasksController extends Controller
 
     public function getLeadTasks(Request $request)
     {
+        abort_if(Gate::denies('lead_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $lead_tasks = LeadTask::with(['lead', 'assignUser']);
-        if (!auth()->user()->hasRole('superadmin')) {
-            $user_ids = getUsersReportingToAuth();
-            $lead_ids = Lead::where('assign_to', $user_ids)->pluck('id');
-            $lead_tasks->where('assigned_to', $user_ids);
-        }
+        $lead_tasks->visibleTo($request->user());
         if ($request->search && !empty($request->search)) {
             $lead_tasks->where(function ($query) use ($request) {
                 $query->where('description', 'like', '%' . $request->search . '%')
@@ -117,6 +114,7 @@ class LeadTasksController extends Controller
 
     function exportTasks(Request $request)
     {
+        abort_if(Gate::denies('lead_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $filename = 'tasks.xlsx';
 
         $results_per_page = 8000;
@@ -124,11 +122,7 @@ class LeadTasksController extends Controller
         $page_result = ($page_number - 1) * $results_per_page;
 
         $lead_tasks = LeadTask::with(['lead']);
-        if (!auth()->user()->hasRole('superadmin')) {
-            $user_ids = getUsersReportingToAuth();
-            $lead_ids = Lead::where('assign_to', $user_ids)->pluck('id');
-            $lead_tasks->where('assigned_to', $user_ids);
-        }
+        $lead_tasks->visibleTo($request->user());
         if ($request->status && !empty($request->status) && $request->status != '') {
             if ($request->status == 'overdue') {
                 $lead_tasks->where('lead_tasks.status', 'pending')
@@ -190,6 +184,7 @@ class LeadTasksController extends Controller
      */
     public function store(Request $request)
     {
+        abort_if(Gate::denies('lead_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $rules = [
             'lead_id' => 'required',
             'assigned_to' => 'required',
@@ -202,7 +197,8 @@ class LeadTasksController extends Controller
         $request->validate($rules);
         $created_by = Auth::id();
         $task_id = $request->task_id;
-        $lead_task = LeadTask::where(['id' => $task_id])->first();
+        Lead::visibleTo($request->user())->findOrFail($request->lead_id);
+        $lead_task = $task_id ? LeadTask::visibleTo($request->user())->findOrFail($task_id) : null;
         if (!$request->status && empty($request->status)) {
             $request->status = 'open';
         }
@@ -219,7 +215,7 @@ class LeadTasksController extends Controller
                 StoreLeadNotification($lead_task->id, 'Assigned Task', $msg, $lead_task->created_by, 'task');
             }
 
-            $lead_task->update(['assigned_to' => $request->assigned_to, 'lead_id' => $request->lead_id, 'created_by' => $created_by, 'description' => $request->description, 'date' => $request->date, 'time' => $request->time, 'priority' => $request->priority, 'status' => $request->status]);
+            $lead_task->update(['assigned_to' => $request->assigned_to, 'lead_id' => $request->lead_id, 'created_by' => $lead_task->created_by, 'description' => $request->description, 'date' => $request->date, 'time' => $request->time, 'priority' => $request->priority, 'status' => $request->status]);
             $request->session()->flash('message_success', __('Lead Task Update successfully.'));
         } else {
             $lead_task = LeadTask::create(['assigned_to' => $request->assigned_to, 'lead_id' => $request->lead_id, 'created_by' => $created_by, 'description' => $request->description, 'date' => $request->date, 'time' => $request->time, 'priority' => $request->priority, 'status' => $request->status]);
@@ -282,17 +278,19 @@ class LeadTasksController extends Controller
      */
     public function destroy(Request $request, LeadTask $leadTask)
     {
-        $leadTask->delete();
+        abort_if(Gate::denies('lead_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        LeadTask::visibleTo($request->user())->findOrFail($leadTask->id)->delete();
         $request->session()->flash('message_success', __('Lead Task deleted successfully.'));
         return redirect()->back();
     }
 
     public function checkboxAction(Request $request)
     {
+        abort_if(Gate::denies('lead_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $lead_ids = $request->lead_ids;
         $lead_id_arr = explode(",", $lead_ids);
         if (count($lead_id_arr) > 0) {
-            LeadTask::whereIn('id', $lead_id_arr)->delete();
+            LeadTask::visibleTo($request->user())->whereIn('id', $lead_id_arr)->delete();
             $request->session()->flash('message_success', __('Lead Task deleted successfully.'));
             return redirect()->back();
         }
@@ -300,8 +298,9 @@ class LeadTasksController extends Controller
 
     public function change_status(Request $request)
     {
+        abort_if(Gate::denies('lead_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $task_id = $request->task_id;
-        $lead_task = LeadTask::find($task_id);
+        $lead_task = LeadTask::visibleTo($request->user())->findOrFail($task_id);
         if ($lead_task) {
             $lead_task->update(['status' => $request->status, 'remark' => $request->remark]);
             $request->session()->flash('message_success', __('Lead Task status changed successfully.'));
