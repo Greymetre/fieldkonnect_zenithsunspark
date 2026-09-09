@@ -344,7 +344,7 @@ class SalesOrderController extends Controller
         $salesOrder->load(['customer', 'payments']);
         $paidAmount = round((float) $salesOrder->payments->sum('amount_received'), 2);
         $balanceDue = max(0, round((float) $salesOrder->grand_total - $paidAmount, 2));
-        abort_if($balanceDue <= 0, Response::HTTP_UNPROCESSABLE_ENTITY, 'This order has no outstanding balance.');
+        abort_if($balanceDue <= 0 && $salesOrder->status !== 'payment_pending', Response::HTTP_UNPROCESSABLE_ENTITY, 'This order has no outstanding balance.');
         return view('sales_orders.partials.payment_modal', compact('salesOrder', 'paidAmount', 'balanceDue'));
     }
 
@@ -353,7 +353,7 @@ class SalesOrderController extends Controller
         abort_if(Gate::denies('sales_order_payment'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $validated = $request->validate([
             'payment_date' => 'required|date',
-            'amount_received' => 'required|numeric|gt:0',
+            'amount_received' => 'required|numeric|min:0',
             'payment_mode' => 'required|in:cash,upi,bank_transfer,card,cheque',
             'reference_number' => 'nullable|string|max:100',
         ]);
@@ -397,7 +397,7 @@ class SalesOrderController extends Controller
     {
         abort_if(Gate::denies('sales_order_confirm'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         abort_unless(in_array($salesOrder->status, ['payment_partial', 'payment_received'], true), Response::HTTP_UNPROCESSABLE_ENTITY, 'A payment is required before confirming the sale.');
-        abort_if((float) $salesOrder->payments()->sum('amount_received') <= 0, Response::HTTP_UNPROCESSABLE_ENTITY, 'A payment is required before confirming the sale.');
+        abort_unless($salesOrder->payments()->exists(), Response::HTTP_UNPROCESSABLE_ENTITY, 'A payment receipt is required before confirming the sale.');
         $salesOrder->update(['status' => 'confirmed', 'updated_by' => Auth::id()]);
 
         return response()->json([

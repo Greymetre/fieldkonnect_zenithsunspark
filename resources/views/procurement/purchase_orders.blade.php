@@ -137,14 +137,17 @@ $(function () {
   $(document).on('click', '.delete-po', function () {
     const button=$(this);
     appSwalConfirm({
-      title:'Delete Draft Purchase Order?',
+      title:'Delete Purchase Order?',
       text:'This action cannot be undone.',
       confirmButtonText:'Yes, Delete',
       confirmButtonClass:'btn btn-danger'
     }).then(function(confirmed){
       if(!confirmed)return;
       $.ajax({url:"{{ url('purchase-orders') }}/"+button.data('id'), type:'DELETE', data:{_token:"{{ csrf_token() }}"}})
-        .done(r => { appSwalSuccess(r.message, 'Deleted'); table.ajax.reload(); })
+        .done(r => {
+          appSwalSuccess(r.message, 'Deleted'); table.ajax.reload();
+          $('.receive-stock-count').text(r.pending_receive_count).toggle(r.pending_receive_count > 0);
+        })
         .fail(x => appSwalError(x.responseJSON?.message || 'Unable to delete.'));
     });
   });

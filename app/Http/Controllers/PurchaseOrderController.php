@@ -142,9 +142,16 @@ class PurchaseOrderController extends Controller
     public function destroy(PurchaseOrder $purchaseOrder)
     {
         abort_if(Gate::denies('purchase_order_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        abort_if($purchaseOrder->status !== 'draft', Response::HTTP_UNPROCESSABLE_ENTITY, 'Only Draft Purchase Orders can be deleted.');
-        $purchaseOrder->delete();
-        return response()->json(['status' => 'success', 'message' => 'Purchase Order deleted successfully.']);
+        DB::transaction(function () use ($purchaseOrder) {
+            $order = PurchaseOrder::whereKey($purchaseOrder->id)->lockForUpdate()->firstOrFail();
+            abort_unless(in_array($order->status, ['draft', 'approved'], true), Response::HTTP_UNPROCESSABLE_ENTITY, 'Only Draft or Approved Purchase Orders pending stock receipt can be deleted.');
+            $order->delete();
+        });
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Purchase Order deleted successfully.',
+            'pending_receive_count' => PurchaseOrder::where('status', 'approved')->count(),
+        ]);
     }
 
     public function approve(Request $request, PurchaseOrder $purchaseOrder)

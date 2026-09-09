@@ -18,7 +18,7 @@
         <input type="date" name="payment_date" class="form-control" value="{{ date('Y-m-d') }}" required>
       </div></div>
       <div class="col-md-6"><div class="input_section"><label>Amount Received <span class="text-danger">*</span></label>
-        <input type="number" name="amount_received" class="form-control" min="0.01" max="{{ $balanceDue }}" step="0.01" value="{{ $balanceDue }}" required>
+        <input type="number" name="amount_received" class="form-control" min="0" max="{{ $balanceDue }}" step="0.01" value="{{ $balanceDue }}" required>
       </div></div>
       <div class="col-md-6"><div class="input_section"><label>Payment Mode <span class="text-danger">*</span></label>
         <select name="payment_mode" class="form-control" required>

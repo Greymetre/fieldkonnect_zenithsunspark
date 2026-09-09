@@ -29,7 +29,7 @@ class PurchaseOrderDataTable extends DataTable
                 if ($row->status === 'draft' && Auth::user()->can('purchase_order_edit')) {
                     $buttons .= '<a href="' . route('purchase-orders.edit', $row) . '" class="btn btn-info btn-just-icon btn-sm" title="Edit"><i class="material-icons">edit</i></a>';
                 }
-                if ($row->status === 'draft' && Auth::user()->can('purchase_order_delete')) {
+                if (in_array($row->status, ['draft', 'approved'], true) && Auth::user()->can('purchase_order_delete')) {
                     $buttons .= '<button type="button" class="btn btn-danger btn-just-icon btn-sm delete-po" data-id="' . $row->id . '" title="Delete"><i class="material-icons">clear</i></button>';
                 }
                 return '<div class="btn-group btn-group-sm">' . $buttons . '</div>';
