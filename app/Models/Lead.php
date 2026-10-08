@@ -17,7 +17,7 @@ class Lead extends Model implements HasMedia
             return $query;
         }
 
-        $userIds = getUsersReportingToAuth($user->id);
+        $userIds = getUsersReportingToAuth($user->id, true);
         return $query->where(function ($query) use ($userIds) {
             $query->whereIn('leads.assign_to', $userIds)
                 ->orWhereIn('leads.created_by', $userIds)

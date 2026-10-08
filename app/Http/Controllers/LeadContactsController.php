@@ -36,7 +36,7 @@ class LeadContactsController extends Controller
     public function getLeadContacts(Request $request){
         $lead_contacts = LeadContact::with(['lead']); 
         if (!Auth::user()->hasRole('superadmin') && !Auth::user()->hasRole('Admin')) {
-            $user_ids = getUsersReportingToAuth();
+            $user_ids = getUsersReportingToAuth('', true);
             $lead_ids = Lead::where('assign_to', $user_ids)->pluck('id');
             $lead_contacts->where('lead_id', $lead_ids);
         }

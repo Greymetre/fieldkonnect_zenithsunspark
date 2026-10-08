@@ -47,7 +47,7 @@ class LeadController extends Controller
     public function index(Request $request)
     {
         abort_if(Gate::denies('lead_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $userids = getUsersReportingToAuth();
+        $userids = getUsersReportingToAuth('', true);
         $users = User::where('active', '=', 'Y')->whereDoesntHave('roles', function ($query) {
             $query->whereIn('id', config('constants.customer_roles'));
         })->where(function ($query) use ($userids) {
@@ -535,7 +535,7 @@ class LeadController extends Controller
      */
     public function create(Request $request)
     {
-        $userids = getUsersReportingToAuth();
+        $userids = getUsersReportingToAuth('', true);
         $users = User::where('active', '=', 'Y')->whereDoesntHave('roles', function ($query) {
             $query->whereIn('id', config('constants.customer_roles'));
         })->where(function ($query) use ($userids) {
@@ -659,7 +659,7 @@ class LeadController extends Controller
     {
         abort_if(Gate::denies('lead_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         Lead::visibleTo($request->user())->findOrFail($lead->id);
-        $userids = getUsersReportingToAuth();
+        $userids = getUsersReportingToAuth('', true);
         $users = User::whereDoesntHave('roles', function ($query) {
             $query->whereIn('id', config('constants.customer_roles'));
         })->where('active', '=', 'Y')->where(function ($query) use ($userids) {
@@ -737,7 +737,7 @@ class LeadController extends Controller
      */
     public function edit(Request $request, Lead $lead)
     {
-        $userids = getUsersReportingToAuth();
+        $userids = getUsersReportingToAuth('', true);
         $users = User::where('active', '=', 'Y')->whereDoesntHave('roles', function ($query) {
             $query->whereIn('id', config('constants.customer_roles'));
         })->where(function ($query) use ($userids) {
@@ -942,7 +942,7 @@ class LeadController extends Controller
 
     public function visit_report(Request $request)
     {
-        $userids = getUsersReportingToAuth();
+        $userids = getUsersReportingToAuth('', true);
         if ($request->ajax()) {
             $data = LeadCheckIn::with('users:id,name', 'lead:id,company_name,lead_source', 'lead.address')
                 ->whereHas('users', function ($query) use ($userids, $request) {

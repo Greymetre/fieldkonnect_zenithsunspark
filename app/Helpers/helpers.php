@@ -428,7 +428,9 @@ if (! function_exists('getLatLongToCity')) {
     }
 }
 if (! function_exists('getUsersReportingToAuth')) {
-    function getUsersReportingToAuth($userid = '')
+    // Pass $applyHierarchyToBackoffice = true for modules (e.g. Leads) where
+    // back-office roles must follow the reporting hierarchy like everyone else.
+    function getUsersReportingToAuth($userid = '', $applyHierarchyToBackoffice = false)
     {
         $userid = !empty($userid) ? $userid : Auth::user()->id;
         $userinfo = User::where('id', '=', $userid)->first();
@@ -439,7 +441,7 @@ if (! function_exists('getUsersReportingToAuth')) {
 
         // Back-office users are restricted by their assigned module permissions,
         // but data inside those modules must not be restricted by reporting hierarchy.
-        $hasGlobalReportingAccess = $userinfo->hasAnyRole([
+        $hasGlobalReportingAccess = !$applyHierarchyToBackoffice && $userinfo->hasAnyRole([
             'BACKOFFICE1',
             'BACKOFFICE2',
             'BACKOFFICE3',

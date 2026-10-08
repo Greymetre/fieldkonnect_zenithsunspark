@@ -15,7 +15,7 @@ class LeadTask extends Model
             return $query;
         }
 
-        $userIds = getUsersReportingToAuth($user->id);
+        $userIds = getUsersReportingToAuth($user->id, true);
         return $query->where(function ($query) use ($userIds) {
             $query->whereIn('lead_tasks.assigned_to', $userIds)
                 ->orWhereIn('lead_tasks.created_by', $userIds)

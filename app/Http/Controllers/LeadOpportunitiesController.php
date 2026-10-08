@@ -24,7 +24,7 @@ class LeadOpportunitiesController extends Controller
     public function index(Request $request)
     {
         // abort_if(Gate::denies('lead_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $userids = getUsersReportingToAuth();
+        $userids = getUsersReportingToAuth('', true);
         $users = User::whereDoesntHave('roles', function ($query) {
             $query->whereIn('id', config('constants.customer_roles'));
         })->where('active', '=', 'Y')->where(function ($query) use ($userids) {
@@ -48,7 +48,7 @@ class LeadOpportunitiesController extends Controller
             $all_opportunities->where('assigned_to', $assigned_to);
         }
         if (!Auth::user()->hasRole('superadmin') && !Auth::user()->hasRole('Admin')) {
-            $user_ids = getUsersReportingToAuth();
+            $user_ids = getUsersReportingToAuth('', true);
             $lead_ids = Lead::where('assign_to', $user_ids)->pluck('id');
             $all_opportunities->where('assigned_to', $user_ids);
         }

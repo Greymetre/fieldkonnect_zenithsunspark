@@ -24,7 +24,7 @@ class LeadCheckinExport implements FromCollection, WithHeadings, ShouldAutoSize,
         $this->user_id = $request->input('user_id');
         $this->division_id = $request->input('division_id');
         $this->branch_id = $request->input('branch_id');
-        $this->userids = getUsersReportingToAuth();
+        $this->userids = getUsersReportingToAuth('', true);
     }
     public function collection()
     {

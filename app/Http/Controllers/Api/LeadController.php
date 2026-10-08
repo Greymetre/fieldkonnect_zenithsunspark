@@ -448,7 +448,7 @@ class LeadController extends Controller
                 "name" => "Completed"
             ]
         ];
-        $user_ids = getUsersReportingToAuth($request->user()->id);
+        $user_ids = getUsersReportingToAuth($request->user()->id, true);
         $users = User::select('id', 'name');
         if ($request->user()->hasRole('superadmin')) {
             $users->where(function ($query) use ($user_ids) {
@@ -577,7 +577,7 @@ class LeadController extends Controller
         $opportunity_statuses = OpportunitieStatus::select('id', 'status_name')->orderBy('ordering', 'asc')->get();
         $all_opportunities = LeadOpportunity::with('lead:id,company_name', 'assignUser:id,name', 'leadContact:id,name', 'status_is:id,status_name');
         if (!$request->user()->hasRole('superadmin')) {
-            $user_ids = getUsersReportingToAuth($request->user()->id);
+            $user_ids = getUsersReportingToAuth($request->user()->id, true);
             $lead_ids = Lead::where('assign_to', $user_ids)->pluck('id');
             $all_opportunities->where('assigned_to', $user_ids);
         }
@@ -595,7 +595,7 @@ class LeadController extends Controller
         foreach ($opportunity_statuses as $key => $opportunity_status) {
             $status_opportunities = LeadOpportunity::with('lead:id,company_name', 'assignUser:id,name');
             if (!$request->user()->hasRole('superadmin')) {
-                $user_ids = getUsersReportingToAuth($request->user()->id);
+                $user_ids = getUsersReportingToAuth($request->user()->id, true);
                 $lead_ids = Lead::where('assign_to', $user_ids)->pluck('id');
                 $status_opportunities->where('assigned_to', $user_ids);
             }
@@ -606,7 +606,7 @@ class LeadController extends Controller
             $data[$key + 1]['total_amount'] = $status_opportunities->where('status', $opportunity_status->id)->sum('amount');
             // $data[$key+1]['opportunities'] = $all_opportunities;
         }
-        $user_ids = getUsersReportingToAuth($request->user()->id);
+        $user_ids = getUsersReportingToAuth($request->user()->id, true);
         $users = User::select('id', 'name');
         if ($request->user()->hasRole('superadmin')) {
             $users->where(function ($query) use ($user_ids) {
