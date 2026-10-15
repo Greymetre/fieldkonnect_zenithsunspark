@@ -165,6 +165,14 @@
                 <option value="overdue">Overdue</option>
               </select>
             </div>
+            <div class="btn-group kim" style="min-width: 180px;">
+              <select name="assigned_to" id="assigned_to" class="form-control selectpicker" data-live-search="true" aria-label="Filter by assigned user">
+                <option value="">All Users</option>
+                @foreach($users as $user)
+                  <option value="{{ $user->id }}">{{ $user->name }}</option>
+                @endforeach
+              </select>
+            </div>
             <span class="">
 
               <div class="pream_entry">
@@ -177,14 +185,6 @@
                 </div>
                 <div class="p-2"><input type="text" class="form-control datepicker" id="start_date" name="start_date" placeholder="Start Date" autocomplete="off" readonly></div>
                 <div class="p-2"><input type="text" class="form-control datepicker" id="end_date" name="end_date" placeholder="End Date" autocomplete="off" readonly></div>
-                <div class="p-2" style="min-width: 180px;">
-                  <select name="assigned_to" id="assigned_to" class="form-control selectpicker" data-live-search="true" data-width="100%" aria-label="Filter by assigned user">
-                    <option value="">All Users</option>
-                    @foreach($users as $user)
-                      <option value="{{ $user->id }}">{{ $user->name }}</option>
-                    @endforeach
-                  </select>
-                </div>
                 <div class="both_btn">
 
                   <div class="well mb-3 float-right" id="checkbox_option" style="display: none;">
