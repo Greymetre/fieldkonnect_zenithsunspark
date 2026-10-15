@@ -177,6 +177,14 @@
                 </div>
                 <div class="p-2"><input type="text" class="form-control datepicker" id="start_date" name="start_date" placeholder="Start Date" autocomplete="off" readonly></div>
                 <div class="p-2"><input type="text" class="form-control datepicker" id="end_date" name="end_date" placeholder="End Date" autocomplete="off" readonly></div>
+                <div class="p-2" style="min-width: 180px;">
+                  <select name="assigned_to" id="assigned_to" class="form-control selectpicker" data-live-search="true" data-width="100%" aria-label="Filter by assigned user">
+                    <option value="">All Users</option>
+                    @foreach($users as $user)
+                      <option value="{{ $user->id }}">{{ $user->name }}</option>
+                    @endforeach
+                  </select>
+                </div>
                 <div class="both_btn">
 
                   <div class="well mb-3 float-right" id="checkbox_option" style="display: none;">
@@ -368,6 +376,7 @@
             start_date: $('#start_date').val(),
             end_date: $('#end_date').val(),
             status: status,
+            assigned_to: $('#assigned_to').val(),
           }
         },
         columns: [{
@@ -412,10 +421,21 @@
       });
     }
 
+    $('#export_button').on('click', function(event) {
+      event.preventDefault();
+      window.location.href = $(this).attr('href') + '?' + $.param({
+        assigned_to: $('#assigned_to').val(),
+        status: $('#status').val(),
+        search: $('#search_lead').val(),
+        start_date: $('#start_date').val(),
+        end_date: $('#end_date').val()
+      });
+    });
+
     $('#search_lead').on('keyup', function() {
       getLeadTasks();
     });
-    $('#status').on('change', function() {
+    $('#assigned_to, #status').on('change', function() {
       getLeadTasks();
     });
     $('#end_date').change(function() {

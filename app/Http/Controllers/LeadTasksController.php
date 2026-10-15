@@ -16,6 +16,7 @@ use App\Models\Lead;
 use Illuminate\Support\Str;
 
 use App\Models\LeadTask;
+use App\Models\User;
 
 class LeadTasksController extends Controller
 {
@@ -26,37 +27,16 @@ class LeadTasksController extends Controller
     {
         abort_if(Gate::denies('lead_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        return view('lead-tasks.index');
+        $users = User::whereIn('id', LeadTask::visibleTo($request->user())->select('assigned_to'))
+            ->orderBy('name')->get(['id', 'name']);
+
+        return view('lead-tasks.index', compact('users'));
     }
 
     public function getLeadTasks(Request $request)
     {
         abort_if(Gate::denies('lead_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $lead_tasks = LeadTask::with(['lead', 'assignUser']);
-        $lead_tasks->visibleTo($request->user());
-        if ($request->search && !empty($request->search)) {
-            $lead_tasks->where(function ($query) use ($request) {
-                $query->where('description', 'like', '%' . $request->search . '%')
-                    ->orWhere('priority', 'like', '%' . $request->search . '%')
-                    ->orWhereHas('lead', function ($subQuery) use ($request) {
-                        $subQuery->where('company_name', 'like', '%' . $request->search . '%');
-                    })
-                    ->orWhereHas('assignUser', function ($subQuery) use ($request) {
-                        $subQuery->where('name', 'like', '%' . $request->search . '%');
-                    });
-            });
-        }
-        if ($request->status && !empty($request->status) && $request->status != '') {
-            if ($request->status == 'overdue') {
-                $lead_tasks->where('lead_tasks.status', 'pending')
-                    ->where('lead_tasks.date', '<', now()->toDateString());
-            } else {
-                $lead_tasks->where('lead_tasks.status', $request->status);
-            }
-        }
-        if($request->start_date && $request->end_date && !empty($request->start_date) && !empty($request->end_date)){
-            $lead_tasks->whereBetween('lead_tasks.date', [$request->start_date, $request->end_date]);
-        }
+        $lead_tasks = $this->filteredTasks($request);
         $lead_tasks = $lead_tasks->orderByRaw("
                 CASE 
                     WHEN lead_tasks.status = 'pending' THEN 0
@@ -112,6 +92,40 @@ class LeadTasksController extends Controller
             ->make(true);
     }
 
+    private function filteredTasks(Request $request)
+    {
+        $lead_tasks = LeadTask::with(['lead', 'assignUser', 'createdby'])
+            ->visibleTo($request->user());
+        if ($request->filled('assigned_to')) {
+            $lead_tasks->where('lead_tasks.assigned_to', $request->input('assigned_to'));
+        }
+        if ($request->search && !empty($request->search)) {
+            $lead_tasks->where(function ($query) use ($request) {
+                $query->where('description', 'like', '%' . $request->search . '%')
+                    ->orWhere('priority', 'like', '%' . $request->search . '%')
+                    ->orWhereHas('lead', function ($subQuery) use ($request) {
+                        $subQuery->where('company_name', 'like', '%' . $request->search . '%');
+                    })
+                    ->orWhereHas('assignUser', function ($subQuery) use ($request) {
+                        $subQuery->where('name', 'like', '%' . $request->search . '%');
+                    });
+            });
+        }
+        if ($request->status && !empty($request->status) && $request->status != '') {
+            if ($request->status == 'overdue') {
+                $lead_tasks->where('lead_tasks.status', 'pending')
+                    ->where('lead_tasks.date', '<', now()->toDateString());
+            } else {
+                $lead_tasks->where('lead_tasks.status', $request->status);
+            }
+        }
+        if($request->start_date && $request->end_date && !empty($request->start_date) && !empty($request->end_date)){
+            $lead_tasks->whereBetween('lead_tasks.date', [$request->start_date, $request->end_date]);
+        }
+
+        return $lead_tasks;
+    }
+
     function exportTasks(Request $request)
     {
         abort_if(Gate::denies('lead_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
@@ -121,17 +135,8 @@ class LeadTasksController extends Controller
         $page_number = intval($request->input('page_number'));
         $page_result = ($page_number - 1) * $results_per_page;
 
-        $lead_tasks = LeadTask::with(['lead']);
-        $lead_tasks->visibleTo($request->user());
-        if ($request->status && !empty($request->status) && $request->status != '') {
-            if ($request->status == 'overdue') {
-                $lead_tasks->where('lead_tasks.status', 'pending')
-                    ->where('lead_tasks.date', '<', now()->toDateString());
-            } else {
-                $lead_tasks->where('lead_tasks.status', $request->status);
-            }
-        }
-        $lead_tasks = $lead_tasks = $lead_tasks->orderByRaw("
+        $lead_tasks = $this->filteredTasks($request);
+        $lead_tasks = $lead_tasks->orderByRaw("
                 CASE 
                     WHEN lead_tasks.status = 'pending' THEN 0
                     WHEN lead_tasks.status = 'open' THEN 1

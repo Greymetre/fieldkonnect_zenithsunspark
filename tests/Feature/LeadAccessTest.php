@@ -112,6 +112,41 @@ class LeadAccessTest extends TestCase
         $this->assertSame([1, 2, 3], $ids);
     }
 
+    /** @dataProvider taskFilters */
+    public function test_web_listing_and_export_apply_same_filters(array $filters, array $expected): void
+    {
+        DB::statement('ALTER TABLE lead_tasks ADD COLUMN priority TEXT');
+        Gate::shouldReceive('denies')->with('lead_access')->andReturn(false);
+        $controller = new LeadTasksController;
+        $request = $this->request(1, $filters);
+        $this->app->instance('request', $request);
+        $request->setUserResolver(fn () => User::find(1));
+        $response = $controller->getLeadTasks($request);
+        $ids = array_column($response->getData(true)['data'], 'id');
+        sort($ids);
+        $this->assertSame($expected, $ids);
+
+        \Maatwebsite\Excel\Facades\Excel::fake();
+        $controller->exportTasks($request);
+        \Maatwebsite\Excel\Facades\Excel::assertDownloaded('tasks.xlsx', function ($export) use ($expected) {
+            $ids = array_column($export->array(), 0);
+            sort($ids);
+            return $ids === $expected;
+        });
+    }
+
+    public static function taskFilters(): array
+    {
+        return [
+            'all visible' => [[], [1, 2, 3]],
+            'team assignee' => [['assigned_to' => 2], [2]],
+            'other assignee excludes hidden task' => [['assigned_to' => 3], [1, 3]],
+            'search with assignee' => [['assigned_to' => 3, 'search' => 'Other Lead'], [3]],
+            'status with assignee' => [['assigned_to' => 3, 'status' => 'completed'], []],
+            'date range with assignee' => [['assigned_to' => 3, 'start_date' => '2026-09-10', 'end_date' => '2026-09-11'], []],
+        ];
+    }
+
     public function test_web_lead_details_reject_unrelated_user(): void
     {
         Gate::shouldReceive('denies')->with('lead_access')->andReturn(false);
