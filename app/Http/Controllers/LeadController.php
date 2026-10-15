@@ -657,76 +657,91 @@ class LeadController extends Controller
      */
     public function show(Request $request, Lead $lead)
     {
-        abort_if(Gate::denies('lead_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        Lead::visibleTo($request->user())->findOrFail($lead->id);
-        $userids = getUsersReportingToAuth('', true);
-        $users = User::whereDoesntHave('roles', function ($query) {
-            $query->whereIn('id', config('constants.customer_roles'));
-        })->where('active', '=', 'Y')->where(function ($query) use ($userids) {
-            if (!Auth::user()->hasRole('superadmin') && !Auth::user()->hasRole('Admin')) {
-                $query->whereIn('id', $userids);
-            }
-        })->select('id', 'name')->orderBy('name')->get();
-
-        $lead_contacts = LeadContact::where(['lead_id' => $lead->id])->get();
-        $lead_notes = LeadNote::where(['lead_id' => $lead->id])->get();
-        $lead_tasks = LeadTask::visibleTo($request->user())->where(['lead_id' => $lead->id])->get();
-        $lead_opportunities = LeadOpportunity::where(['lead_id' => $lead->id])->get();
-
-        $pincodes = Pincode::where('active', '=', 'Y')
-            // ->whereHas('assigncitiesusers', function ($query) use ($userids) {
-            //     if (!Auth::user()->hasRole('superadmin') && !Auth::user()->hasRole('Admin')) {
-            //         $query->whereIn('userid', $userids);
-            //     }
-            // })
-            ->select('id', 'pincode')->orderBy('id', 'desc')->get();
-        $countries = Country::where('active', '=', 'Y')
-            ->whereHas('countrystates', function ($query) use ($userids) {
-                if (!Auth::user()->hasRole('superadmin') && !Auth::user()->hasRole('Admin')) {
-                    $query->whereHas('statecities', function ($query) use ($userids) {
-                        $query->whereHas('assignusers', function ($q) use ($userids) {
-                            $q->whereIn('userid', $userids);
-                        });
-                    });
-                }
-            })
-            ->select('id', 'country_name')->orderBy('id', 'desc')->get();
-        $address = Address::where(['model_type' => 'App\Models\Lead', 'model_id' => $lead->id])->first();
-        if (isset($address)) {
-            $address1 = $address->address1;
-            $address2 = $address->address2;
-            $city_name = $address->cityname->city_name ?? '';
-            $state_name = $address->statename->state_name ?? '';
-            $pincodename = $address->pincodename->pincode ?? '';
-            $address_data = $address1 . "," . $address2 . "," . $city_name . "," . $state_name . "," . $pincodename;
-        } else {
-            $address_data = "";
-        }
-
-        $lead_logs = LeadLog::where(['lead_id' => $lead->id])->get();
-        $opportunities = LeadOpportunity::where(['lead_id' => $lead->id])->get();
-
-        $lead_notes->each(function ($item) {
-            $item->type = 'note';
-        });
-        $lead_tasks->each(function ($item) {
-            $item->type = 'task';
-        });
-        $lead_logs->each(function ($item) {
-            $item->type = 'log';
-        });
-        $opportunities->each(function ($item) {
-            $item->type = 'opportunity';
-        });
-
-
-        $combined = $lead_notes->merge($lead_tasks)->merge($lead_logs)->merge($opportunities)->sortByDesc('created_at')->values();
-        // $combined = $lead_notes->merge($lead_tasks)->merge($lead_logs)->sortByDesc('created_at')->values();
-
-        $media_items = $lead->getMedia('lead_file');
+        $this->authorizeLeadDetails($request, $lead);
+        $address = $lead->address()->with(['cityname', 'districtname', 'statename', 'countryname', 'pincodename'])->first();
+        $address_data = $address ? implode(',', [
+            $address->address1, $address->address2,
+            $address->cityname->city_name ?? '', $address->statename->state_name ?? '',
+            $address->pincodename->pincode ?? '',
+        ]) : '';
+        // Only the primary contact, header and first activity page block the first response.
+        $lead_contacts = $lead->contacts()->orderBy('id')->limit(1)->get();
+        $activityPage = app(\App\Services\LeadActivityFeed::class)->page($lead, $request->user());
+        $combined = $activityPage->getCollection();
         $status = Status::where('module', 'LeadStatus')->where('active', 'Y')->get();
-        $opportunity_status = OpportunitieStatus::orderBy('ordering', 'asc')->pluck('status_name', 'id')->toArray();
-        return view('leads.show', compact('lead', 'lead_contacts', 'lead_notes', 'users', 'lead_tasks', 'lead_opportunities', 'countries', 'pincodes', 'address', 'address_data', 'media_items', 'combined', 'status', 'opportunity_status'));
+        $opportunity_status = OpportunitieStatus::orderBy('ordering')->pluck('status_name', 'id')->toArray();
+        $users = collect();
+
+        return view('leads.show', compact('lead', 'lead_contacts', 'activityPage', 'combined',
+            'status', 'opportunity_status', 'users', 'address', 'address_data'));
+    }
+
+    private function authorizeLeadDetails(Request $request, Lead $lead): void
+    {
+        abort_if(Gate::denies('lead_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        Lead::visibleTo($request->user())->whereKey($lead->id)->firstOrFail();
+    }
+
+    public function detailSection(Request $request, Lead $lead, string $section)
+    {
+        $this->authorizeLeadDetails($request, $lead);
+        if ($section === 'activity') {
+            $request->validate(['page' => 'nullable|integer|min:1|max:100000']);
+            $activityPage = app(\App\Services\LeadActivityFeed::class)->page($lead, $request->user(), (int) $request->input('page', 1));
+            return response()->json([
+                'html' => view('leads.partials.activity', ['combined' => $activityPage->getCollection()])->render(),
+                'has_more' => $activityPage->hasMorePages(),
+            ]);
+        }
+        if ($section === 'sidebar') {
+            $userids = getUsersReportingToAuth($request->user()->id, true);
+            $users = User::where('active', 'Y')->whereDoesntHave('roles', function ($query) {
+                $query->whereIn('id', config('constants.customer_roles'));
+            })->when(!$request->user()->hasAnyRole(['superadmin', 'Admin']), fn ($q) => $q->whereIn('id', $userids))
+                ->orderBy('name')->get(['id', 'name']);
+            $lead_contacts = $lead->contacts()->get();
+            $lead_tasks = LeadTask::visibleTo($request->user())->where('lead_id', $lead->id)->get();
+            $lead_opportunities = $lead->opportunities()->get();
+            $data = compact('lead', 'lead_contacts', 'lead_tasks', 'lead_opportunities');
+            return response()->json([
+                'tasks' => view('leads.partials.tasks-list', $data)->render(),
+                'contacts' => view('leads.partials.contacts-list', $data)->render(),
+                'opportunities' => view('leads.partials.opportunities-list', $data)->render(),
+                'users' => $users,
+                'contact_options' => $lead_contacts->map(fn ($contact) => ['id' => $contact->id, 'name' => $contact->name]),
+            ]);
+        }
+        if ($section === 'notes') {
+            return response()->json(['html' => view('leads.partials.notes-list', [
+                'lead_notes' => $lead->notes()->latest('created_at')->latest('id')->get(),
+            ])->render()]);
+        }
+        if ($section === 'files') {
+            return response()->json(['html' => view('leads.partials.files-list', [
+                'media_items' => $lead->getMedia('lead_file'),
+            ])->render()]);
+        }
+        if ($section === 'address') {
+            $userids = getUsersReportingToAuth($request->user()->id, true);
+            $countries = Country::where('active', 'Y')->whereHas('countrystates', function ($query) use ($request, $userids) {
+                if (!$request->user()->hasAnyRole(['superadmin', 'Admin'])) {
+                    $query->whereHas('statecities.assignusers', fn ($q) => $q->whereIn('userid', $userids));
+                }
+            })->orderByDesc('id')->get(['id', 'country_name']);
+            return response()->json(['countries' => $countries]);
+        }
+        if ($section === 'pincodes') {
+            $request->validate(['q' => 'nullable|string|max:20', 'page' => 'nullable|integer|min:1', 'city_id' => 'nullable|integer']);
+            $pincodes = Pincode::where('active', 'Y')
+                ->when($request->filled('city_id'), fn ($q) => $q->where('city_id', $request->city_id))
+                ->when($request->filled('q'), fn ($q) => $q->where('pincode', 'like', $request->q . '%'))
+                ->orderBy('pincode')->orderBy('id')->simplePaginate(20, ['id', 'pincode']);
+            return response()->json([
+                'results' => $pincodes->getCollection()->map(fn ($pin) => ['id' => $pin->id, 'text' => $pin->pincode]),
+                'pagination' => ['more' => $pincodes->hasMorePages()],
+            ]);
+        }
+        abort(404);
     }
 
     /**

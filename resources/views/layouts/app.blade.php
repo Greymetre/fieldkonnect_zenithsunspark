@@ -9,14 +9,14 @@
    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
    <!-- CSS Files -->
-   <link href="{{ asset('assets/css/materialdashboard2.css?v=' . now()->timestamp) }}" rel="stylesheet" />
-   <link href="{{ asset('assets/css/newdesign.css?v=' . now()->timestamp) }}" rel="stylesheet" />
-   <link href="{{ asset('assets/css/custom1.css?v=' . now()->timestamp) }}" rel="stylesheet" />
+   <link href="{{ asset('assets/css/materialdashboard2.css?v=' . (request()->routeIs('leads.show') ? filemtime(public_path('assets/css/materialdashboard2.css')) : now()->timestamp)) }}" rel="stylesheet" />
+   <link href="{{ asset('assets/css/newdesign.css?v=' . (request()->routeIs('leads.show') ? filemtime(public_path('assets/css/newdesign.css')) : now()->timestamp)) }}" rel="stylesheet" />
+   <link href="{{ asset('assets/css/custom1.css?v=' . (request()->routeIs('leads.show') ? filemtime(public_path('assets/css/custom1.css')) : now()->timestamp)) }}" rel="stylesheet" />
    <!-- CSS Just for demo purpose, don't include it in your project -->
-   <link href="{{ asset('assets/demo/demo.css?v=' . now()->timestamp) }}" rel="stylesheet" />
+   <link href="{{ asset('assets/demo/demo.css?v=' . (request()->routeIs('leads.show') ? filemtime(public_path('assets/demo/demo.css')) : now()->timestamp)) }}" rel="stylesheet" />
    <!-- <link href="{{ asset('assets/css/jquery-ui.css') }}" rel="stylesheet" /> -->
-   <link href="{{ asset('assets/css/responsive.bootstrap4.css?v=' . now()->timestamp) }}" rel="stylesheet" />
-   <link rel="stylesheet" href="{{ asset('assets/plugins/select2/css/select2.css?v=' . now()->timestamp) }}">
+   <link href="{{ asset('assets/css/responsive.bootstrap4.css?v=' . (request()->routeIs('leads.show') ? filemtime(public_path('assets/css/responsive.bootstrap4.css')) : now()->timestamp)) }}" rel="stylesheet" />
+   <link rel="stylesheet" href="{{ asset('assets/plugins/select2/css/select2.css?v=' . (request()->routeIs('leads.show') ? filemtime(public_path('assets/plugins/select2/css/select2.css')) : now()->timestamp)) }}">
    <link href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css" rel="stylesheet">
    <script src="{{ asset('assets/js/core/jquery.min.js') }}"></script>
    <script src="{{ asset('assets/js/core/jquery-ui.js') }}"></script>
@@ -2643,8 +2643,8 @@
                   <li class="nav-item dropdown d-flex" style="align-items: center;">
                      <p class="m-0" style="font-weight: bold;">{{ auth()->user()->name }}</p>
                      <a class="nav-link" href="javascript:;" id="navbarDropdownProfile" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        @if (auth()->user()->getMedia('profile_image')->count() > 0 && Storage::disk('s3')->exists(auth()->user()->getMedia('profile_image')[0]->getPath()))
-                        <img src="{{ auth()->user()->getMedia('profile_image')[0]->getFullUrl() }}" border="0" width="40" class="rounded-circle" />
+                        @if (auth()->user()->getMedia('profile_image')->count() > 0 && (request()->routeIs('leads.show') || Storage::disk('s3')->exists(auth()->user()->getMedia('profile_image')[0]->getPath())))
+                        <img src="{{ auth()->user()->getMedia('profile_image')[0]->getFullUrl() }}" border="0" width="40" class="rounded-circle" loading="lazy" decoding="async" onerror="this.hidden=true" />
                         @else
                         <i class="material-icons">person</i>
                         @endif
@@ -2860,6 +2860,7 @@
          document.getElementById("img01").src = imgPath;
       });
 
+      @unless(request()->routeIs('leads.show'))
       document.addEventListener("DOMContentLoaded", function() {
          document.getElementById("loader").style.display = "block";
          document.querySelector(".content").style.display = "none";
@@ -2870,6 +2871,7 @@
          document.getElementById("loader").style.display = "none";
          document.querySelector(".content").style.display = "block";
       });
+      @endunless
    </script>
    <script>
       const body = document.querySelector('body'),

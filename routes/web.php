@@ -173,6 +173,8 @@ Route::group(['middleware' => ['auth']], function () {
     });
     
     //Lead Management
+    Route::get('leads/{lead}/sections/{section}', [LeadController::class, 'detailSection'])
+        ->where('section', 'activity|sidebar|notes|files|address|pincodes')->name('leads.section');
     Route::resource('leads', LeadController::class);
     Route::post('leads/getLeads', [LeadController::class, 'getLeads'])->name('leads.getLeads');
     Route::post('lead-upload', [LeadController::class, 'upload'])->name('leads.upload');

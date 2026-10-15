@@ -793,21 +793,21 @@
                 <ul>
                     <li>
                         @if($lead_contacts[0]->email??'')
-                        <img src="{{url('/').'/'.asset('assets/img')}}/mail.svg"> <span>{{$lead_contacts[0]->email??''}}</span>
+                        <img src="{{asset('assets/img')}}/mail.svg"> <span>{{$lead_contacts[0]->email??''}}</span>
                         @endif
                     </li>
                     <li>
                         @if($lead_contacts[0]->phone_number??'')
-                        <img src="{{url('/').'/'.asset('assets/img')}}/phone.svg"> <span>{{$lead_contacts[0]->phone_number??''}}</span>
+                        <img src="{{asset('assets/img')}}/phone.svg"> <span>{{$lead_contacts[0]->phone_number??''}}</span>
                         @endif
                     </li>
                 </ul>
             </div>
         </div>
         <div class="button-box">
-            <button class="btn btn-primary me-2" onclick="activateNotesTab()"><img src="{{url('/').'/'.asset('assets/img')}}/paper.svg"> Note</button>
+            <button class="btn btn-primary me-2" onclick="activateNotesTab()"><img src="{{asset('assets/img')}}/paper.svg"> Note</button>
             @if($lead_contacts[0]->email??'')
-            <a  href="mailto:{{$lead_contacts[0]->email??''}}" class="btn btn-outline-primary text-white email_s"><img src="{{url('/').'/'.asset('assets/img')}}/btnmail.svg">Email</a>
+            <a  href="mailto:{{$lead_contacts[0]->email??''}}" class="btn btn-outline-primary text-white email_s"><img src="{{asset('assets/img')}}/btnmail.svg">Email</a>
             @endif
         </div>
     </div>
@@ -932,36 +932,7 @@ action="{{ route('lead-tasks.store') }}" class="form-horizontal taskform" id="fr
 </div>
 </form>
 
-<ul class="list-group list-group-flush list-task contact-list">
-    @foreach($lead_tasks as $lead_task)
-    <li> 
-        <div class="d-flex flex-row justify-content-between">
-            <div class="wer">
-                <p>{{$lead_task->description??''}}</p>
-                <p><img src="{{ url('/').'/'.asset('assets/img/leaddate.svg') }}"> <span class="date">{{date("d F Y",strtotime($lead_task->date))}}</span>
-                </p>
-            </div>
-
-            <div class="d-flex flex-row per">
-                <div class="editbox" onclick="editTask('{{$lead_task}}')"> <img src="{{ url('/').'/'.asset('assets/img/ph_note-pencil-fill.svg') }}">
-                </div>
-
-                <div class="deletebox">
-                    <form action="{{ route('lead-tasks.destroy', $lead_task->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('Do you really want to delete?')">
-                        @csrf
-                        @method('DELETE')
-                        <div type="submit" class="editbox">
-                            <button class="deletebtn" type="submit"><img src="{{ url('/').'/'.asset('assets/img/deletbox.svg') }}"></button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-
-    </li>
-    @endforeach
-</ul>
+<div id="lead-tasks-list" aria-live="polite"></div>
 </div>
 <!--  -->
 </div>
@@ -1050,47 +1021,7 @@ action="{{ route('lead-contacts.store') }}" class="form-horizontal contact-task-
 </div>
 </form>
 <!--  -->
-<ul class="list-group list-group-flush list-task cn-list">
-    @foreach($lead_contacts as $lead_contact)
-    <li>
-        <div class="contact-person">
-            <h5>{{$lead_contact->name??''}}</h5>
-            <p>{{$lead_contact->title??''}}</p>
-        </div>
-        <div class="contac-link">
-
-<!-- <p><img src="{{ url('/').'/'.asset('assets/img/whatsup.svg') }}"></p> -->
-    @if($lead_contact->email)
-        <p>
-            <a href="mailto:{{ $lead_contacts[0]->email }}">
-                <img src="{{ url('/').'/'.asset('assets/img/mail.svg') }}" alt="Mail icon" title="{{$lead_contact->email}}" data-toggle="tooltip" >
-            </a>
-        </p>
-    @endif
-    @if($lead_contact->phone_number)
-        <p>
-            <a href="tel:{{ $lead_contacts[0]->phone_number }}">
-                <img src="{{ url('/').'/'.asset('assets/img/phone.svg') }}" alt="Mail icon" title="{{$lead_contact->phone_number}}" data-toggle="tooltip">
-            </a>
-        </p>
-    @endif
-    </div>
-    <div class="editdelte d-flex flex-row ">
-
-        <div class="contact_edit" onclick="editContact('{{$lead_contact}}')"><img src="{{ url('/').'/'.asset('assets/img/ph_note-pencil-fill.svg') }}"></div>
-        <div class="contact_edit">
-            <form action="{{ route('lead-contacts.destroy', $lead_contact->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('Do you really want to delete?')">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="deletebtn">
-                    <img src="{{ url('/').'/'.asset('assets/img/deletbox.svg') }}">
-                </button>
-            </form>
-        </div>
-    </div>
-</li>
-@endforeach
-</ul>
+<div id="lead-contacts-list" aria-live="polite"></div>
 </div>
 </div>
 
@@ -1226,36 +1157,7 @@ action="{{ route('lead-opportunities.store') }}" class="form-horizontal taskform
 </div>
 </form>
 <!--  -->
-<ul class="list-group list-group-flush list-task cn-list appurt">
-    @foreach($lead_opportunities  as $lead_opportunity)
-    <li>
-        <div class="contact-person">
-            <div class="d-flex flex-row justify-content-between gh">
-                <div class="">
-                    <h5>{{$lead_opportunity->note}}</h5>
-                    <p>{{$lead_opportunity->amount}}</p>
-                </div>
-                <div class="d-flex flex-row sdm">
-                    <div class="editsource" onclick="editOpportunity('{{$lead_opportunity}}')"><img src="{{ url('/').'/'.asset ('assets/img/ph_note-pencil-fill.svg') }}">
-                    </div>
-                    <div class="deletebox">
-                        <form action="{{ route('lead-opportunities.destroy', $lead_opportunity->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('Do you really want to delete?')">
-                            @csrf
-                            @method('DELETE')
-                            <button class="deletebtn editsource" type="submit" class="">
-                                <img src="{{ url('/').'/'.asset ('assets/img/deletbox.svg') }}">
-                            </button>
-                        </form>
-                    </div>
-
-                </div>
-            </div>
-
-
-        </div>
-    </li>
-    @endforeach
-</ul>
+<div id="lead-opportunities-list" aria-live="polite"></div>
 </div>
 </div>
 
@@ -1315,100 +1217,11 @@ action="{{ route('lead-opportunities.store') }}" class="form-horizontal taskform
             </form>
         </div>--}}
 
-        @php
-        $previousDate = null;
-        @endphp
-        @foreach($combined as $lead_note)
-        @php
-        $noteDate = \Carbon\Carbon::parse($lead_note->created_at)->format('d M Y'); // e.g., 28 Feb 2024
-        $noteTime = \Carbon\Carbon::parse($lead_note->created_at)->format('h:i a'); // e.g., 10:25 pm
-        @endphp
-        <div>
-            @if($noteDate !== $previousDate)
-            <h6 class="text-muted date_listing mt-3"> <img src="{{ url('/').'/'.asset('assets/img/leaddate.svg') }}"> {{ $noteDate }}</h6>
-            @php
-            $previousDate = $noteDate;
-            @endphp
-            @endif
-<!-- code 28 feb 2024  -->
+<div id="lead-activity-items">@include('leads.partials.activity')</div>
+@if($activityPage->hasMorePages())
+<button type="button" class="btn btn-link" id="lead-more-activity" data-page="2">More activities</button>
+@endif
 
-<!--new div--->
-<div class="card mb-2 p-0">
-    <div class="main-div">
-        <div class="list-one">
-            <div class="image_box">
-                <div class="greenbox">
-                    @if($lead_note->type == 'note')
-                    <img src="{{url('/').'/'.asset('assets/img')}}/cup.svg">
-                    @elseif($lead_note->type == 'task')
-                    <img src="{{url('/').'/'.asset('assets/img')}}/task_logo.png" width="35">
-                    @elseif($lead_note->type == 'log')
-                    <img src="{{url('/').'/'.asset('assets/img')}}/log.png" width="35">
-                    @else
-                    <img src="{{url('/').'/'.asset('assets/img')}}/opportunity.png?" width="25">
-                    @endif
-                </div>
-            </div>
-            <div class="listdata">
-                @if($lead_note->type == 'note')
-                <h5>Note</h5>
-                <h5>{!! $lead_note->note??''!!}</h5>
-                <p>Created by: {!! $lead_note->createdby? $lead_note->createdby->name : ''!!}</p>
-                @elseif($lead_note->type == 'task')
-                <h5>Task <span class="badge badge-info ml-1" style="font-family: 'Poppins', sans-serif;font-size: 10px;font-weight:700;border-radius: 0px 10px !important;"> {{$lead_note->priority??''}}</span></h5>
-                <h5>{!! $lead_note->description??''!!} ({{date('d M Y', strtotime($lead_note->date))}}, {{date('h:i A', strtotime($lead_note->time))}})</h5>
-                <p>Created by: {!! $lead_note->createdby? $lead_note->createdby->name : ''!!}</p>
-                @elseif($lead_note->type == 'log')
-                <h5>Log </h5>
-                <h5>{!! $lead_note->message??''!!}</h5>
-                @else
-                <h5>Opportunity <span class="badge badge-info ml-1" style="font-family: 'Poppins', sans-serif;font-size: 10px;font-weight:700;border-radius: 0px 10px !important;"> {{$lead_note->status_is ? $lead_note->status_is->status_name :''}}</span></h5>
-                <h5>{!! $lead_note->note??''!!} </h5>
-                <p>Estimated close date: {{date('d M Y', strtotime($lead_note->estimated_close_date))}}</p>
-                <p>Confidence: {{$lead_note->confidence??0}}%</p>
-                <p>Created by: {!! $lead_note->createdby? $lead_note->createdby->name : ''!!}</p>
-                @endif
-
-                <p></p>
-
-                <p class="date-list">{{$noteTime}}</p>
-            </div>
-        </div>
-        @if($lead_note->type == 'noteee')
-        <div class="list-two">
-            <div class="dropdown">
-                <button class="dropdown-toggle" type="button" id="dropdownMenuButton"
-                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <img src="{{url('/').'/'.asset('assets/img')}}/point.svg">
-
-            </button>
-
-            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <div class="dropdown-item" onclick='editNote(@json($lead_note))'>
-                    <a>Edit</a>
-                </div>
-                <div class="dropdown-item">
-                    <form action="{{ route('lead-notes.destroy', $lead_note->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('Do you really want to delete?')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="">
-                            delete
-                        </button>
-                    </form>
-                </div>
-
-
-
-            </div>
-        </div>
-
-    </div>
-    @endif
-</div>
-
-</div>
-</div>
-@endforeach
 </div>
 </div>
 <div class="tab-pane fade" id="notes" role="tabpanel">
@@ -1431,73 +1244,7 @@ action="{{ route('lead-opportunities.store') }}" class="form-horizontal taskform
             </form>
         </div>
 
-        @php
-        $previousDate1 = null;
-        @endphp
-        @foreach($lead_notes as $lead_note)
-        @php
-        $noteDate = \Carbon\Carbon::parse($lead_note->created_at)->format('d M Y'); // e.g., 28 Feb 2024
-        $noteTime = \Carbon\Carbon::parse($lead_note->created_at)->format('h:i a'); // e.g., 10:25 pm
-        @endphp
-        <div>
-            @if($noteDate !== $previousDate1)
-            <h6 class="text-muted date_listing mt-3"> <img src="{{ url('/').'/'.asset('assets/img/leaddate.svg') }}"> {{ $noteDate }}</h6>
-            @php
-            $previousDate1 = $noteDate;
-            @endphp
-            @endif
-<!-- code 28 feb 2024  -->
-
-<!--new div--->
-<div class="card mb-2 p-0">
-    <div class="main-div">
-        <div class="list-one">
-            <div class="image_box">
-                <div class="greenbox">
-                    <img src="{{url('/').'/'.asset('assets/img')}}/cup.svg">
-                </div>
-            </div>
-            <div class="listdata">
-                <h5>{!! $lead_note->note??''!!}</h5>
-
-                <p></p>
-
-                <p class="date-list">{{$noteTime}}</p>
-            </div>
-        </div>
-        <div class="list-two">
-            <div class="dropdown">
-                <button class="dropdown-toggle" type="button" id="dropdownMenuButton"
-                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <img src="{{url('/').'/'.asset('assets/img')}}/point.svg">
-
-            </button>
-
-            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <div class="dropdown-item">
-                    <a onclick='editNote(@json($lead_note))'>Edit</a>
-                </div>
-                <div class="dropdown-item">
-                    <form action="{{ route('lead-notes.destroy', $lead_note->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('Do you really want to delete?')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="">
-                            delete
-                        </button>
-                    </form>
-                </div>
-
-
-
-            </div>
-        </div>
-
-    </div>
-</div>
-
-</div>
-</div>
-@endforeach
+<div id="lead-notes-list" aria-live="polite"></div>
 </div>
 </div>
 <div class="tab-pane fade" id="files" role="tabpanel">
@@ -1506,44 +1253,7 @@ action="{{ route('lead-opportunities.store') }}" class="form-horizontal taskform
         <p class="hed m-0">Files</p>
     </div>
     <div class="card-body">
-    @if(count($media_items) > 0)
-        <ul class="">
-            @foreach($media_items as $media)
-            <li class="d-flex flex-row justify-content-between align-items-center mb-3">
-                <a href="{{ $media->getFullUrl() }}" target="_blank">
-                    <div class="imagebox">
-                        <div class="d-flex flex-row align-items-center">
-                            @php
-                                $mime = $media->mime_type;
-                            @endphp
-
-                            @if(str_contains($mime, 'image'))
-                                <img src="{{ $media->getFullUrl() }}" alt="{{ $media->name }}" width="50" height="50">
-                            @elseif(str_contains($mime, 'pdf'))
-                                <img src="{{ url('/').'/'.asset('assets/img/pdf-icon.jpg') }}" alt="PDF" width="40"> 
-                            @elseif(str_contains($mime, 'spreadsheet') || str_contains($mime, 'excel'))
-                                <img src="{{ url('/').'/'.asset('assets/img/excel-icon.png') }}" alt="Excel" width="40"> 
-                            @else
-                                <img src="{{ url('/').'/'.asset('images/file-icon.png') }}" alt="File" width="40"> 
-                            @endif
-
-                            <div class="imagedata">
-                                <p>{{ $media->file_name }}</p>
-                                <p>{{ strtoupper($media->mime_type) }} • {{ number_format($media->size / 1024, 1) }} KB</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-                <div class="buttonbox">
-                    <a href="{{ route('leads-deleteMedia') }}?media_id={{ $media->id }}"
-                    onclick="return confirm('Do you really want to delete?')">
-                    <img src="{{ url('/').'/'.asset('assets/img/deletbox.svg') }}">
-                    </a>
-                </div>
-            </li>
-            @endforeach 
-        </ul>
-        @endif
+<div id="lead-files-list" aria-live="polite"></div>
 
         <div>
 
@@ -1561,7 +1271,7 @@ action="{{ route('lead-opportunities.store') }}" class="form-horizontal taskform
                         @endif
 
                         <div class="fileinput-new thumbnail">
-                            <img src="{!! url('/').'/'.asset('assets/img/up.png') !!}" class="imagepreview7">
+                            <img src="{!! asset('assets/img/up.png') !!}" class="imagepreview7">
                             <div class="selectThumbnail">
                                 <span class="btn btn-just-icon btn-round btn-file">
                                     <span class="fileinput-new"><i class="fa fa-pencil"></i></span>
@@ -1596,32 +1306,7 @@ action="{{ route('lead-opportunities.store') }}" class="form-horizontal taskform
         <p class="hed m-0"> Task</p>
     </div>
     <div class="card-body">
-        <ul class="list-group list-group-flush list-task contact-list">
-            @foreach($lead_tasks as $lead_task)
-            <li> 
-                <div class="d-flex flex-row justify-content-between">
-                    <div class="">
-                        <p>{{$lead_task->description??''}}</p>
-                        <p><img src="{{ url('/').'/'.asset('assets/img/leaddate.svg') }}"> <span class="date">{{date("d F Y",strtotime($lead_task->date))}}</span>
-                        </p>
-                    </div>
-                    <div class="d-flex flex-row">
-                        <div class="editbox" onclick="editTask('{{$lead_task}}')"> <img src="{{ url('/').'/'.asset('assets/img/ph_note-pencil-fill.svg') }}"></div>
-                        <div class="deletebox editbox ml-2">
-                            <form action="{{ route('lead-tasks.destroy', $lead_task->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('Do you really want to delete?')">
-                                @csrf
-                                @method('DELETE')
-                                <button class="deletebtn" type="submit" class="">
-                                    <img src="{{ url('/').'/'.asset('assets/img/deletbox.svg') }}">
-
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </li>
-            @endforeach
-        </ul>
+<div id="lead-tasks-tab-list" aria-live="polite"></div>
     </div>
 </div>
 <div class="tab-pane fade" id="others" role="tabpanel">
@@ -1734,10 +1419,8 @@ action="{{ route('leads.storeAddress') }}" class="form-horizontal" id="frmLeadsA
                     <label for="country">Country <span style="color:red">*</span></label>
                     <select class="form-control select2 country" name="country_id" onchange="getStateList()" style="width: 100%;" id="country_id">
                         <option value="">Select {!! trans('panel.global.country') !!}</option>
-                        @if(@isset($countries ))
-                        @foreach($countries as $country)
-                        <option value="{!! $country['id'] !!}" @if(isset($address) && $address->country_id==$country['id']) selected @endif >{!! $country['country_name'] !!}</option>
-                        @endforeach
+                        @if($address && $address->countryname)
+                        <option value="{{ $address->country_id }}" selected>{{ $address->countryname->country_name }}</option>
                         @endif
                     </select>
                     @if ($errors->has('country_id'))
@@ -1761,7 +1444,7 @@ action="{{ route('leads.storeAddress') }}" class="form-horizontal" id="frmLeadsA
                     <label for="district_id">District </label>
                     <select class="form-control select2 district" name="district_id" id="district_id" onchange="getCityList()" style="width: 100%;">
                         @if(isset($address) && $address->district_id)
-                        <option value="{!!  $address->district_id !!}">{!! $address->cityname->city_name??'' !!}</option>
+                        <option value="{!!  $address->district_id !!}">{!! $address->districtname->district_name??'' !!}</option>
                         @else
                         <option value="">Select {!! trans('panel.global.district') !!}</option>
                         @endif
@@ -1773,7 +1456,7 @@ action="{{ route('leads.storeAddress') }}" class="form-horizontal" id="frmLeadsA
                 </div>
                 <div class="col-md-12 form-group">
                     <label for="city_id">City <span style="color:red">*</span></label>
-                    <select class="form-control select2 city" name="city_id" id="city_id" onchange="getPincodeList()" style="width: 100%;">
+                    <select class="form-control select2 city" name="city_id" id="city_id" onchange="resetLeadPincode()" style="width: 100%;">
                         @if(isset($address) && $address->city_id)
                         <option value="{!!  $address->city_id !!}">{!! $address->cityname->city_name??'' !!}</option>
                         @else
@@ -1788,10 +1471,8 @@ action="{{ route('leads.storeAddress') }}" class="form-horizontal" id="frmLeadsA
                     <label for="pincode_id">pincode <span style="color:red">*</span></label>
                     <select class="form-control pincode select2" name="pincode_id" id="pincode_id" onchange="getAddressData()" style="width: 100%;">
                         <option value="">Select {!! trans('panel.global.pincode') !!}</option>
-                        @if(@isset($pincodes ))
-                        @foreach($pincodes as $pincode)
-                        <option value="{!! $pincode['id'] !!}" @if(isset($address) && $address->pincode_id==$pincode['id']) selected @endif >{!! $pincode['pincode'] !!}</option>
-                        @endforeach
+                        @if($address && $address->pincodename)
+                        <option value="{{ $address->pincode_id }}" selected>{{ $address->pincodename->pincode }}</option>
                         @endif
                     </select>
                     @if ($errors->has('pincode_id'))
@@ -1842,10 +1523,10 @@ action="{{ route('leads.storeAddress') }}" class="form-horizontal" id="frmLeadsA
 
 </script>
 
-<script src="{{ url('/').'/'.asset('assets/js/jquery.custom.js') }}"></script>
+<script src="{{ asset('assets/js/jquery.custom.js') }}"></script>
 <!-- Load jQuery and moment.js -->
 
-<script type="text/javascript" src="{{ url('/').'/'.asset('vendor/ckeditor/js/ckeditor.js') }}"></script>
+
 <script>
 
     jQuery(document).ready(function(){
@@ -1979,19 +1660,7 @@ amount: {
 
 
 
-// 1. Initialize CKEditor for all matching elements
-        document.querySelectorAll('.ckeditor-init').forEach(function (item) {
-            var editor = CKEDITOR.replace(item, {
-                customConfig: 'config.js',
-                toolbar: 'Basic',
-                height: '15em'
-            });
 
-// 2. Update the textarea content on change (already good)
-            editor.on('change', function () {
-                this.updateElement();
-            });
-        });
 
 
     });
@@ -2102,11 +1771,9 @@ $('#frmLeadOpportunitiesCreate #o_amount').val(opportunity_data.amount);
         $('#note_text').val(note.note);
 
 // Set value in CKEditor
-        if (CKEDITOR.instances['note_text']) {
-            CKEDITOR.instances['note_text'].setData(note.note);
-        } else {
-            $('#note_text').val(note.note);
-        }
+        ensureLeadNoteEditor().then(function () {
+            if (window.CKEDITOR && CKEDITOR.instances.note_text) CKEDITOR.instances.note_text.setData(note.note);
+        });
     }
 
     function openAddAddressModel(){
@@ -2123,9 +1790,7 @@ $('#frmLeadOpportunitiesCreate #o_amount').val(opportunity_data.amount);
         $('#city_id').select2({
             dropdownParent: $('#AddAddressModel')
         });
-        $('#pincode_id').select2({
-            dropdownParent: $('#AddAddressModel')
-        });
+        initLeadPincode();
     }
 
     $('#status').on('change', function () {
@@ -2174,6 +1839,7 @@ $('#frmLeadOpportunitiesCreate #o_amount').val(opportunity_data.amount);
 function activateNotesTab() {
         // Show the form
         $('#frmLeadNotesAdd').show();
+        ensureLeadNoteEditor();
 
         // Activate the Notes tab using Bootstrap's tab API
         $('#notes-tab').tab('show');
@@ -2181,4 +1847,5 @@ function activateNotesTab() {
 
 
 </script>
+@include('leads.partials.background-script')
 </x-app-layout>
