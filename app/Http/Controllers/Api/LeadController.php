@@ -172,6 +172,14 @@ class LeadController extends Controller
                 'key' => 'Self',
                 'value' => 'Self'
             ],
+            [
+                'key' => 'Reference',
+                'value' => 'Reference'
+            ],
+            [
+                'key' => 'Government',
+                'value' => 'Government'
+            ],
         ];
         $data = [
             'status' => $status,
@@ -190,7 +198,7 @@ class LeadController extends Controller
                 'required',
                 Rule::exists('statuses', 'id')->where('module', 'LeadStatus'),
             ],
-            'lead_source' => 'required|in:Google,Indiamart,Justdial,Instagram,Facebook,Self',
+            'lead_source' => 'required|in:Google,Indiamart,Justdial,Instagram,Facebook,Self,Reference,Government',
         ]);
 
         if ($validate->fails()) {

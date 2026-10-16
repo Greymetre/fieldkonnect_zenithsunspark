@@ -30,6 +30,8 @@ return [
         'Instagram' => 'Instagram',
         'Facebook' => 'Facebook',
         'Self' => 'Self',
+        'Reference' => 'Reference',
+        'Government' => 'Government',
     ],
     'customer_roles' => [
         29,

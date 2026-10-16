@@ -126,7 +126,7 @@ class LeadsImport implements ToCollection, WithValidation, WithHeadingRow, WithB
             'district' => 'nullable|exists:districts,district_name',
             'state' => 'nullable|exists:states,state_name',
             'lead_type' => 'nullable|exists:statuses,display_name',
-            'lead_source' => 'nullable|in:Google,Indiamart,Justdial,Instagram,Facebook,Self',
+            'lead_source' => 'nullable|in:Google,Indiamart,Justdial,Instagram,Facebook,Self,Reference,Government',
             'assignee' => 'nullable|exists:users,name',
         ];
     }
@@ -144,7 +144,7 @@ class LeadsImport implements ToCollection, WithValidation, WithHeadingRow, WithB
             'state.exists' => 'The selected state does not exist in our records.',
 
             'lead_type.exists' => 'The lead type must be a valid status name.',
-            'lead_source.in' => 'The lead source must be one of: Google, Indiamart, Justdial, Instagram, Facebook, Self.',
+            'lead_source.in' => 'The lead source must be one of: Google, Indiamart, Justdial, Instagram, Facebook, Self, Reference, Government.',
             'assignee.exists' => 'The selected assignee name was not found in users.',
         ];
     }
