@@ -379,7 +379,9 @@ class ReportController extends Controller
 
     public function attendancereport(Request $request)
     {
-        abort_if(Gate::denies('attendance_report'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        // The attendance summary page loads its table data from this endpoint via ajax.
+        $canViewSummary = $request->ajax() && Gate::allows('attendance_summary_report');
+        abort_if(Gate::denies('attendance_report') && !$canViewSummary, Response::HTTP_FORBIDDEN, '403 Forbidden');
         $search_branches = $request->input('search_branches');
         $all_reporting_user_ids = getUsersReportingToAuth();
         $all_user_branches = user::whereDoesntHave('roles', function ($query) {
