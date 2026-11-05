@@ -66,7 +66,7 @@ class ExpensesDataTable extends DataTable
                 $is_avail = 'No';
                 if ($query->getMedia('expense_file')->count() > 0) {
                     foreach ($query->getMedia('expense_file') as $image) {
-                        if (Storage::disk('s3')->exists($image->getPath())) {
+                        if (\App\Models\Expenses::mediaFileExists($image)) {
                             $is_avail = 'Yes';
                         }
                     }

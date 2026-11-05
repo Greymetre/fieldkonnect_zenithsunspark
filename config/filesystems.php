@@ -49,6 +49,16 @@ return [
             'root'   => public_path() . '/uploads',
         ],
 
+        // Local disk for MediaLibrary files (e.g. expense attachments).
+        // The site is served from the project root, so public/ is part of the URL.
+        'media_local' => [
+            'driver' => 'local',
+            'root' => public_path('uploads/media'),
+            'url' => rtrim(env('APP_URL', ''), '/') . '/public/uploads/media',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

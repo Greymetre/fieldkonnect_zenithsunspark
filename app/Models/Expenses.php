@@ -34,9 +34,34 @@ class Expenses extends Model implements HasMedia
   public function registerMediaCollections(): void
   {
     $this->addMediaCollection('expense_file')
+      ->useDisk('media_local')
       ->useFallbackUrl(asset(config('constants.NO_IMAGE_URL')))
       ->useFallbackPath(public_path(config('constants.NO_IMAGE_URL')));
     //->singleFile();
+  }
+
+  /**
+   * Whether a media file exists on whatever disk it was stored on
+   * (old records are on s3, new ones on media_local). Never throws.
+   */
+  public static function mediaFileExists($media): bool
+  {
+    try {
+      return \Illuminate\Support\Facades\Storage::disk($media->disk)->exists($media->getPathRelativeToRoot());
+    } catch (\Throwable $e) {
+      return false;
+    }
+  }
+
+  /** True if any attachment of the expense exists on its disk. */
+  public function hasExpenseFile(): bool
+  {
+    foreach ($this->getMedia('expense_file') as $media) {
+      if (self::mediaFileExists($media)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public function approve_reject()

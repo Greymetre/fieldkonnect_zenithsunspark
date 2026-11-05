@@ -181,7 +181,7 @@ class ExpensesTypeController extends Controller
 
                     $image = array();
 
-                    if (isset($expense) && $expense->getMedia('expense_file')->count() > 0 && Storage::disk('s3')->exists($expense->getFirstMedia('expense_file')->getPath())) {
+                    if (isset($expense) && $expense->hasExpenseFile()) {
                         foreach ($expense->getMedia('expense_file') as $expense_image) {
                             $image[] = $expense_image->getFullUrl();
                         }
@@ -246,7 +246,7 @@ class ExpensesTypeController extends Controller
 
                 $image = array();
                 $image_id = array();
-                if (isset($expense) && $expense->getMedia('expense_file')->count() > 0 && Storage::disk('s3')->exists($expense->getFirstMedia('expense_file')->getPath())) {
+                if (isset($expense) && $expense->hasExpenseFile()) {
                     foreach ($expense->getMedia('expense_file') as $expense_image) {
                         $image[] = $expense_image->getFullUrl();
                         $image_id[] = $expense_image->id;
@@ -464,7 +464,7 @@ class ExpensesTypeController extends Controller
 
                     $image = array();
 
-                    if (isset($expense) && $expense->getMedia('expense_file')->count() > 0 && Storage::disk('s3')->exists($expense->getFirstMedia('expense_file')->getPath())) {
+                    if (isset($expense) && $expense->hasExpenseFile()) {
                         foreach ($expense->getMedia('expense_file') as $expense_image) {
                             $image[] = $expense_image->getFullUrl();
                         }
