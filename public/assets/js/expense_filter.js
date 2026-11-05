@@ -80,18 +80,21 @@ $(document).ready(function () {
             {
                 data: 'users.name',
                 name: 'users.name',
+                defaultContent: '',
                 orderable: false,
                 searchable: false
             },
             {
                 data: 'users.getdesignation.designation_name',
                 name: 'users.getdesignation.designation_name',
+                defaultContent: '',
                 orderable: false,
                 searchable: false
             },
             {
                 data: 'expense_type.name',
                 name: 'expense_type.name',
+                defaultContent: '',
                 orderable: false,
                 searchable: false
             },
@@ -128,6 +131,7 @@ $(document).ready(function () {
             {
                 data: 'users.getbranch.branch_name',
                 name: 'users.getbranch.branch_name',
+                defaultContent: '',
                 orderable: false,
                 searchable: false
             },
